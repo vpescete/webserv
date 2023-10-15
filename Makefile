@@ -1,19 +1,20 @@
 NAME	= webserv
 
-SRC		= srcs/main.cpp
+SRC		= srcs/main.cpp srcs/ServerConf.cpp
 
-OBJ     = $(SRC:.cpp=.o)
+OBJ		= $(SRC:.cpp=.o)
 
-CC      = c++
-FLAGS   = -Wall -Wextra -Werror -std=c+98
-RM      = rm -rf
+I		= include/
+CC		= c++
+FLAGS	= -Wall -Wextra -Werror -std=c++98 -I$I
+RM		= rm -rf
 
 # Colors
-GREEN   = \e[92;5;118m
-YELLOW  = \e[93;5;226m
-GRAY    = \e[33;2;37m
-RESET   = \e[0m
-CURSIVE = \e[33;3m
+GREEN	= \e[92;5;118m
+YELLOW	= \e[93;5;226m
+GRAY	= \e[33;2;37m
+RESET	= \e[0m
+CURSIVE	= \e[33;3m
 
 .PHONY: all clean fclean re
 
