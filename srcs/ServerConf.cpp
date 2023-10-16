@@ -31,7 +31,7 @@ std::string ServerConf::getHost() {
 		return _mapConfiguration.at("host");
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	};
 }
 
@@ -40,7 +40,7 @@ size_t ServerConf::getPort() {
 		return std::atoi(_mapConfiguration.at("port").c_str());
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Port not found in the configuration file" << RESET << std::endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	};
 }
 
@@ -49,7 +49,7 @@ std::string ServerConf::getServerName() {
 		return _mapConfiguration.at("server_name");
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Server Name not found in the configuration file" << RESET << std::endl;
-		exit(1);
+		exit(EXIT_FAILURE);
 	}
 }
 
