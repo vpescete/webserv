@@ -23,6 +23,8 @@ class ServerConf {
 		// setter member
 		
 		// getter member
+		std::string	getHost();
+		size_t		getPort();
 
 		// member function
 		void	confSplitter(std::string confFile);

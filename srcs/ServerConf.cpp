@@ -26,7 +26,26 @@ ServerConf::ServerConf(std::string const pathFile) : _confFile(pathFile) {
 ServerConf::~ServerConf() {
 }
 
-void ServerConf::confSplitter(std::string confFile) {
+std::string ServerConf::getHost() {
+	try {
+		return _mapConfiguration.at("host");
+	} catch (const std::exception & e) {
+		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
+		exit(1);
+	};
+}
+
+size_t ServerConf::getPort() {
+	try {
+		return std::atoi(_mapConfiguration.at("port").c_str());
+	} catch (const std::exception & e) {
+		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
+		exit(1);
+	};
+}
+
+void ServerConf::confSplitter(std::string confFile)
+{
 	// std::cout << confFile << std::endl;
 	std::string::size_type start;
 	std::string::size_type end = 0;
