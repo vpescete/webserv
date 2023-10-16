@@ -39,14 +39,22 @@ size_t ServerConf::getPort() {
 	try {
 		return std::atoi(_mapConfiguration.at("port").c_str());
 	} catch (const std::exception & e) {
-		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
+		std::cerr << RED << "Port not found in the configuration file" << RESET << std::endl;
 		exit(1);
 	};
 }
 
+std::string ServerConf::getServerName() {
+	try {
+		return _mapConfiguration.at("server_name");
+	} catch (const std::exception & e) {
+		std::cerr << RED << "Server Name not found in the configuration file" << RESET << std::endl;
+		exit(1);
+	}
+}
+
 void ServerConf::confSplitter(std::string confFile)
 {
-	// std::cout << confFile << std::endl;
 	std::string::size_type start;
 	std::string::size_type end = 0;
 
@@ -59,7 +67,7 @@ void ServerConf::confSplitter(std::string confFile)
 			std::string value = confFile.substr(start + 1, end - start - 1);
 			removeWhitespace(key);
 			_mapConfiguration.insert(std::make_pair<std::string, std::string>(key, value));
-			std::cout << RED << key << " : " << GREEN  << value << RESET << std::endl;
+			// std::cout << RED << key << " : " << GREEN  << value << RESET << std::endl;k
 		}
 		confFile = confFile.substr(end + 1);
 	}
