@@ -29,8 +29,6 @@ class ServerConf {
 
 		// member function
 		void	confSplitter(std::string confFile);
-
-
 };
 
 bool	isWhitespace(char c);

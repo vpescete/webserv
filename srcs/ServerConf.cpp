@@ -57,24 +57,20 @@ void ServerConf::confSplitter(std::string confFile)
 {
 	std::string::size_type start;
 	std::string::size_type end = 0;
+	std::string key;
+	std::string value;
 
 	while (end < confFile.size())
 	{
 		start = confFile.find('=', 0);
 		end = confFile.find(';', 0);
 		if(end != std::string::npos) {
-			std::string key = confFile.substr(1, start - 1);
-			std::string value = confFile.substr(start + 1, end - start - 1);
+			key = confFile.substr(1, start - 1);
+			value = confFile.substr(start + 1, end - start - 1);
 			removeWhitespace(key);
 			_mapConfiguration.insert(std::make_pair<std::string, std::string>(key, value));
-			// std::cout << RED << key << " : " << GREEN  << value << RESET << std::endl;k
+			std::cout << RED << key << " : " << GREEN  << value << RESET << std::endl;
 		}
 		confFile = confFile.substr(end + 1);
 	}
-	start = confFile.find('=', 0);
-	end = confFile.find('\0', 0);
-	if(start != std::string::npos)
-		_mapConfiguration.insert(std::make_pair<std::string, std::string>(
-			confFile.substr(1, start - 1),
-			confFile.substr(start + 1, end - 1)));
 }
