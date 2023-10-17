@@ -16,10 +16,10 @@ class Server {
 		void	_setHost();
 	public:
 		Server(ServerConf & config);
-		Server(Server & cpy);
+		// Server(Server & cpy);
 		~Server();
 
-		Server operator=(Server & rhs);
+		// Server operator=(Server & rhs);
 
 		
 };

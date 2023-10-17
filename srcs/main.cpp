@@ -7,7 +7,8 @@ int	main(int ac, char *av[]) {
 		return EXIT_FAILURE;
 	}
 	ServerConf confFile(av[1]);
-	std::cout << confFile.getHost() << std::endl;
-	std::cout << confFile.getPort() << std::endl;
+	// std::cout << confFile.getHost() << std::endl;
+	// std::cout << confFile.getPort() << std::endl;
+	Server	svr(confFile);
 }
 

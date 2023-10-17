@@ -11,6 +11,7 @@
 # define CYAN "\e[0;36m"
 # define RESET "\e[0m"
 
+// MACRO 
 # define DEFAULT_PATH "conf/server.conf"
 
 
@@ -28,6 +29,7 @@
 # include <signal.h>
 # include <stdlib.h>
 
+
 // C++ Library
 # include <iostream>
 # include <cstdlib>
@@ -41,6 +43,9 @@
 # include <map>
 # include <algorithm>
 
+
+// class
 # include "ServerConf.hpp"
+# include "Server.hpp"
 
 #endif
