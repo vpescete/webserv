@@ -11,8 +11,10 @@
 # define CYAN "\e[0;36m"
 # define RESET "\e[0m"
 
+
 // MACRO 
 # define DEFAULT_PATH "conf/server.conf"
+# define DEFAULT_ERROR_PAGE "errors/500.html"
 
 
 // C Library

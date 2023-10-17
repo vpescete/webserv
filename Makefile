@@ -27,10 +27,12 @@ $(NAME): $(OBJ)
 	@printf "$(CURSIVE)$(GRAY) 	- Compiling $(NAME)... $(RESET)\n"
 	@$(CC) $(FLAGS) $(OBJ) -o $(NAME)
 	@printf "$(GREEN) - Executable ready.\n$(RESET)"
+	@mkdir -p uploads
 
 clean:
 	@$(RM) $(OBJ)
 	@printf "$(YELLOW) - Object files removed.$(RESET)\n"
+	@rm -rf uploads
 
 fclean: clean
 	@$(RM) $(NAME)
