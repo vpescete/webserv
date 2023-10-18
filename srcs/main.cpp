@@ -2,6 +2,8 @@
 
 bool	running = 1;
 
+const int kQueue = kqueue();
+
 static void signal_handler(int i) {
 	if (i == SIGINT)
 		running = 0;
