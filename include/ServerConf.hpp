@@ -24,7 +24,7 @@ class ServerConf {
 		
 		// getter member
 		std::string	getHost();
-		size_t		getPort();
+		u_int16_t	getPort();
 		std::string	getServerName();
 
 		// member function

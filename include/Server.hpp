@@ -7,7 +7,7 @@ class ServerConf;
 
 class Server {
 	private:
-		size_t		_port;
+		u_int16_t		_port;
 		std::string	_host;
 		ServerConf	*_conf;
 
@@ -20,6 +20,10 @@ class Server {
 		~Server();
 
 		// Server operator=(Server & rhs);
+
+		// getter
+		u_int16_t	getPort();
+		std::string	getHost();
 
 		
 };

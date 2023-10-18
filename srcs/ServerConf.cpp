@@ -35,9 +35,9 @@ std::string ServerConf::getHost() {
 	};
 }
 
-size_t ServerConf::getPort() {
+u_int16_t ServerConf::getPort() {
 	try {
-		return std::atoi(_mapConfiguration.at("port").c_str());
+		return (u_int16_t)std::atoi(_mapConfiguration.at("port").c_str());
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Port not found in the configuration file" << RESET << std::endl;
 		exit(EXIT_FAILURE);
