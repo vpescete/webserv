@@ -22,14 +22,8 @@ int	main(int ac, char *av[]) {
 
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 
-	// Configura l'indirizzo del server
-	struct sockaddr_in serverAddress;
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_addr.s_addr = inet_addr(svr.getHost().c_str());
-	serverAddress.sin_port = htons(svr.getPort());
-
 	// Collega il socket all'indirizzo del server
-	bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+	bind(serverSocket, (struct sockaddr*)&svr.getServerAddress(), sizeof(svr.getServerAddress()));
 
 	// Mette il server in ascolto su localhost
 	listen(serverSocket, 5);

@@ -14,6 +14,9 @@ class Server {
 		// setter member
 		void	_setPort();
 		void	_setHost();
+
+		// socket
+		struct sockaddr_in _serverAddress;
 	public:
 		Server(ServerConf & config);
 		// Server(Server & cpy);
@@ -24,8 +27,8 @@ class Server {
 		// getter
 		u_int16_t	getPort();
 		std::string	getHost();
+		const struct sockaddr_in& getServerAddress() const;
 
-		
 };
 
 #endif
