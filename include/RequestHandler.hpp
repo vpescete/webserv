@@ -1,0 +1,20 @@
+#ifndef REQUESTHANDLER_HPP
+# define REQUESTHANDLER_HPP
+#include "webserv.h"
+
+class RequestHandler {
+    private:
+        std::string _method;
+        std::string _path;
+        std::string _protocol;
+        std::map <std::string, std::string> _mapRequest;
+    public:
+        RequestHandler();
+        ~RequestHandler();
+        void parsereq(std::string buffer);
+        std::string getMethod();
+        std::string getPath();
+        std::string getProtocol();
+};
+
+#endif
