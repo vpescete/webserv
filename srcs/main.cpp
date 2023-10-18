@@ -29,9 +29,8 @@ int	main(int ac, char *av[]) {
 	listen(serverSocket, 5);
 
 	std::cout << "Server in ascolto su " << BLUE << svr.getHost() << YELLOW << ":" << CYAN << svr.getPort() << RESET << std::endl;
-	int clientSocket = accept(serverSocket, NULL, NULL);
 	while (running) {
-
+		int clientSocket = accept(serverSocket, NULL, NULL);
 		// Leggi e invia il file index.html
 		std::ifstream file("/Users/vpescetelli/webserv/www/index.html");
 		if (file.is_open()) {
