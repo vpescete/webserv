@@ -25,7 +25,6 @@ class Configuration {
 		std::string	getServerName();
 		std::string	getErrorPath(std::string errorCode);
 
-
 };
 
 #endif
