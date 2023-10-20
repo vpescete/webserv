@@ -114,6 +114,6 @@ std::string Configuration::getErrorPath(std::string errorCode) {
 	try {
 		return _map[errorCode];
 	} catch (std::exception & e) {
-		return "errors/500.html";
+		return DEFAULT_ERROR_PAGE;
 	}
 }
