@@ -47,7 +47,9 @@
 
 
 // class
-# include "ServerConf.hpp"
+# include "ParserConf.hpp"
 # include "Server.hpp"
+# include "Configuration.hpp"
+# include "LocationPath.hpp"
 
 #endif

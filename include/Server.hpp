@@ -3,13 +3,14 @@
 
 #include "webserv.h"
 
-class ServerConf;
+class ParserConf;
+class Configuration;
 
 class Server {
 	private:
 		u_int16_t		_port;
 		std::string	_host;
-		ServerConf	*_conf;
+		Configuration	*_conf;
 
 		// setter member
 		void	_setPort();
@@ -18,7 +19,7 @@ class Server {
 		// socket
 		struct sockaddr_in _serverAddress;
 	public:
-		Server(ServerConf & config);
+		Server(Configuration & config);
 		// Server(Server & cpy);
 		~Server();
 

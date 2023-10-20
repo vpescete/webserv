@@ -1,7 +1,7 @@
 #include "webserv.h"
 #include "Server.hpp"
 
-Server::Server(ServerConf &config) : _conf(&config) {
+Server::Server(Configuration &config) : _conf(&config) {
 	_setPort();
 	_setHost();
 	_serverAddress.sin_family = AF_INET;

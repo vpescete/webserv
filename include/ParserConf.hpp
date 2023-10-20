@@ -1,34 +1,35 @@
-#ifndef SERVERCONF_HPP
-# define SERVERCONF_HPP
+#ifndef PARSERCONF_HPP
+# define PARSERCONF_HPP
 
 #include "webserv.h"
 
-class ServerConf {
+class Configuration;
+
+class ParserConf {
 	private:
 		std::ifstream	_confFile;
 		std::map<std::string, std::string>	_mapConfiguration;
 		std::string		_configurationString;
 		std::vector<std::string>	_confVector;
+		std::vector<Configuration>	_configurationServer;
 	public:
 		// costructor
-		ServerConf(const std::string pathFile);
-		// ServerConf(const ServerConf & cpy);
+		ParserConf(const std::string pathFile);
+		ParserConf(const ParserConf & cpy);
 
 		// destructor
-		~ServerConf();
+		~ParserConf();
 
 		// override operator
-		// ServerConf& operator=(const ServerConf & rhs);
+		ParserConf& operator=(const ParserConf & rhs);
 
 		// setter member
 		
 		// getter member
-		std::string	getHost();
-		u_int16_t	getPort();
 		std::string	getServerName();
 
 		// member function
-		void	confSplitter(std::string confFile);
+		void	splitterConfinguration(std::string confFile);
 };
 
 bool	isWhitespace(char c);
