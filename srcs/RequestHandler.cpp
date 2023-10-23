@@ -49,7 +49,6 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	std::string temp2;
 	temp2 = buffer.substr(i + 1, buffer.length());
 	if (_method == "GET") {
-		write(1, "DIOCANE\n", 8);
 		while (end < temp2.size())
 		{
 			start = temp2.find(':', 0);
@@ -60,7 +59,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapHeader.insert(std::make_pair<std::string, std::string>(key, value));
-				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
@@ -70,8 +69,13 @@ void   	RequestHandler::parsereq(std::string buffer) {
 		const char* headerEnd = strstr(buffer.c_str(), "\r\n\r\n");
 		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
 		std::cout << BLUE << buffer << RESET << std::endl;
-		if (headerEnd != NULL) {
+		int k = 0;
+		while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
+			headerEnd++;
+		if (headerEnd != NULL && headerEnd[0] == '-') {
 			// Parse and print the headers
+			write(1, "DIOBESTIA\n", 10);
+			std::cout << headerEnd << std::endl;
 			while (end < temp2.size())
 			{
 				start = temp2.find(':', 0);
@@ -82,15 +86,15 @@ void   	RequestHandler::parsereq(std::string buffer) {
 					removeWhitespace(key);
 					removeWhitespace(value);
 					_mapHeader.insert(std::make_pair<std::string, std::string>(key, value));
-					std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+					// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 				}
 				temp2 = temp2.substr(end + 1);
 			}
-			std::cout << YELLOW << "Headers:\n" << buffer << RESET << std::endl;
+			// std::cout << YELLOW << "Headers:\n" << buffer << RESET << std::endl;
 			// Extract the body (if it exists)
 			std::string bodyStart = headerEnd + 4;
 			if (bodyStart.length() > 0) {
-					std::cout << RED << "Body:\n" << bodyStart << RESET << std::endl;
+					// std::cout << RED << "Body:\n" << bodyStart << RESET << std::endl;
 				while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
 					j++;
 				_bodyStart = bodyStart.substr(0, j);
@@ -109,20 +113,20 @@ void   	RequestHandler::parsereq(std::string buffer) {
 						value = bodyStart.substr(start + 2, end - start - 2);
 						removeWhitespace(key);
 						removeWhitespace(value);
-						std::cout << YELLOW << bodyStart << RESET << std::endl;
-						std::cout << GREEN << key << RESET << std::endl << BLUE << value << RESET << std::endl;
+						// std::cout << YELLOW << bodyStart << RESET << std::endl;
+						// std::cout << GREEN << key << RESET << std::endl << BLUE << value << RESET << std::endl;
 						_mapBody.insert(std::make_pair<std::string, std::string>(key, value));
-						std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+						// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 					}
 					bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
-					std::cout << bodyStart << std::endl;
+					// std::cout << bodyStart << std::endl;
 				}
 				j = 0;
 				while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
 					j++;
 				bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
 				_bodyEnd = bodyStart;
-				std::cout << BLUE << _bodyEnd << RESET << std::endl;
+				// std::cout << BLUE << _bodyEnd << RESET << std::endl;
 				// start = 0;
 				// end = bodyStart.find(':');
 				// key = bodyStart.substr(start, end);
