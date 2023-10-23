@@ -19,15 +19,14 @@ int	main(int ac, char *av[]) {
 	}
 	signal(SIGINT, signal_handler);
 	ServerConf confFile(av[1]);
-	// std::cout << confFile.getHost() << std::endl;
-	// std::cout << confFile.getPort() << std::endl;
 	Server	svr(confFile);
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
-	int def = 0;
 
 	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 	int opt = 1;
+
+	// options to let socket reutilize the same port
 	if (setsockopt(serverSocket, SOL_SOCKET, 
 				SO_REUSEADDR , &opt, 
 				sizeof(opt))) { 
@@ -46,16 +45,21 @@ int	main(int ac, char *av[]) {
 
 	// Mette il server in ascolto su localhost
 	listen(serverSocket, 5);
-
+	ssize_t addrlen = sizeof(sockaddr);
 	std::cout << "Server in ascolto su " << BLUE << svr.getHost() << YELLOW << ":" << CYAN << svr.getPort() << RESET << std::endl;
 	while (running) {
-		int clientSocket = accept(serverSocket, NULL, NULL);
-		int bufread = recv(clientSocket, bufferino, 10000, 0);
-		(void)bufread;
+		int clientSocket = accept(serverSocket, (struct sockaddr*) &svr.getServerAddress(), (socklen_t*)&addrlen);
+		// read the request from the client
+		if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0)
+		{
+			break;
+		}
+		//printf("%s\n", bufferino);
+		//call to parse the request in RequestHandler class
 		req.parsereq(bufferino);
-		// std::cout << req.getMethod() << "\n" << req.getProtocol() << "\n" << req.getPath() << std::endl;
-		// Leggi e invia il file index.html
-		if (def == 0) {
+		// std::cout << req.getMethod() << std::endl << req.getPath() << std::endl << req.getProtocol() << std::endl;
+		// Leggi e invia il file index.html di default al primo caricamento della pagina
+		if (req.getPath() == "/") {
 			std::ifstream file("./www/index.html");
 			if (file.is_open()) {
 				std::stringstream buffer;
@@ -63,7 +67,7 @@ int	main(int ac, char *av[]) {
 				std::string content = buffer.str();
 				std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 				send(clientSocket, response.c_str(), response.length(), 0);
-				def = 1;
+				
 			} else {
 				std::ifstream file("./errors/404.html");
 				std::stringstream buffer;
@@ -75,7 +79,9 @@ int	main(int ac, char *av[]) {
 				send(clientSocket, response.c_str(), response.length(), 0);
 			}
 		}
-		if (def != 0 ) {
+
+		// Read and send the file requested from the path in the request
+		else {
 			std::ifstream file("." + req.getPath());
 			if (file.is_open()) {
 				std::stringstream buffer;
@@ -88,12 +94,13 @@ int	main(int ac, char *av[]) {
 				send(clientSocket, response.c_str(), response.length(), 0);
 			}
 		}
-		
+		std::cout << req.getPath()<< std::endl;
 		memset(bufferino, 0, 10000);
 		// Chiudi la connessione con il client
 		close(clientSocket);
 	}
 	close(serverSocket);
+	bufferino = NULL;
 	free(bufferino);
 }
 

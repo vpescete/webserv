@@ -7,7 +7,10 @@ class RequestHandler {
         std::string _method;
         std::string _path;
         std::string _protocol;
-        std::map <std::string, std::string> _mapRequest;
+        std::map <std::string, std::string> _mapHeader;
+        std::string _bodyStart;
+        std::string _bodyEnd;
+        std::map <std::string, std::string> _mapBody;
     public:
         RequestHandler();
         ~RequestHandler();
