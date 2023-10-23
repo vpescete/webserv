@@ -72,9 +72,8 @@ void   	RequestHandler::parsereq(std::string buffer) {
 		int k = 0;
 		while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
 			headerEnd++;
-		if (headerEnd != NULL && headerEnd[0] == '-') {
+		if (headerEnd != NULL) {
 			// Parse and print the headers
-			write(1, "DIOBESTIA\n", 10);
 			std::cout << headerEnd << std::endl;
 			while (end < temp2.size())
 			{
@@ -90,6 +89,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 				}
 				temp2 = temp2.substr(end + 1);
 			}
+			if (headerEnd[0] == '-') {
 			// std::cout << YELLOW << "Headers:\n" << buffer << RESET << std::endl;
 			// Extract the body (if it exists)
 			std::string bodyStart = headerEnd + 4;
@@ -104,10 +104,8 @@ void   	RequestHandler::parsereq(std::string buffer) {
 				{
 					start = bodyStart.find(':', 0);
 					end = bodyStart.find('\n', 0);
-					if (bodyStart[0] == '\r') {
-						write(1, "orcodio\n", 8);
+					if (bodyStart[0] == '\r')
 						break;
-					}
 					if(end != std::string::npos) {
 						key = bodyStart.substr(0, start);
 						value = bodyStart.substr(start + 2, end - start - 2);
@@ -139,7 +137,10 @@ void   	RequestHandler::parsereq(std::string buffer) {
 				//std::cout << BLUE << _bodyStart << RESET << std::endl;
 				//printf("\n %s, %i\n", bodyStart, j);
 				//_bodyStart = 
+				}
 			}
+			else
+				_bodyEnd = headerEnd;
 		}
 	}
 	temp = NULL;
