@@ -11,7 +11,7 @@ LocationPath::~LocationPath() {
 }
 
 std::string LocationPath::getMethods() {
-	std::cout << _mapPath["methods"] << std::endl;
+	// std::cout << _mapPath["methods"] << std::endl;
 	return _mapPath["methods"];
 }
 

@@ -27,6 +27,7 @@ class ParserConf {
 		
 		// getter member
 		std::string	getServerName();
+		std::vector<Configuration>	getConf();
 
 		// member function
 		void	splitterConfinguration(std::string confFile);

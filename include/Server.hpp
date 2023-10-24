@@ -9,7 +9,7 @@ class Configuration;
 class Server {
 	private:
 		u_int16_t		_port;
-		std::string	_host;
+		std::string		_host;
 		Configuration	*_conf;
 
 		// setter member
@@ -19,7 +19,7 @@ class Server {
 		// socket
 		struct sockaddr_in _serverAddress;
 	public:
-		Server(Configuration & config);
+		Server(Configuration& config);
 		// Server(Server & cpy);
 		~Server();
 

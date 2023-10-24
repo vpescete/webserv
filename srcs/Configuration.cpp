@@ -77,7 +77,7 @@ void Configuration::_setMapLocation() {
 
 std::string Configuration::getHost() {
 	try {
-		std::cout << _map.at("host") << std::endl;
+		// std::cout << _map.at("host") << std::endl;
 		return _map.at("host");
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
@@ -87,7 +87,7 @@ std::string Configuration::getHost() {
 
 u_int16_t Configuration::getPort() {
 	try {
-		std::cout << _map.at("port") << std::endl;
+		// std::cout << _map.at("port") << std::endl;
 		return (u_int16_t)std::atoi(_map.at("port").c_str());
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Port not found in the configuration file" << RESET << std::endl;
@@ -98,7 +98,7 @@ u_int16_t Configuration::getPort() {
 std::string Configuration::getHostPort() {
 	std::string	hostPort;
 	hostPort.append(_map["host"]).append(":").append(_map["port"]);
-	std::cout << CYAN << hostPort << RESET << std::endl;
+	// std::cout << CYAN << hostPort << RESET << std::endl;
 	return hostPort;
 }
 

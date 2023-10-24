@@ -10,6 +10,17 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
+std::vector<Server *>	startServer(std::vector<Configuration> vectConfig) {
+	std::vector<Server *> servers;
+	std::vector<Configuration>::iterator it = vectConfig.begin();
+	for (; it != vectConfig.end(); ++it) {
+		Server *s = new Server((*it));
+		std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
+		servers.push_back(s);
+	}
+	return servers;
+}
+
 int	main(int ac, char *av[]) {
 
 	if (ac != 2) {
@@ -18,7 +29,11 @@ int	main(int ac, char *av[]) {
 	}
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
-	while (running)
+
+	std::vector<Server *> servers;
+	servers = startServer(confFile.getConf());
+	while (running) {
 		;
+	}
 }
 

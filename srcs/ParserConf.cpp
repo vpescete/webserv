@@ -47,6 +47,10 @@ std::string ParserConf::getServerName() {
 	}
 }
 
+std::vector<Configuration> ParserConf::getConf() {
+	return _configurationServer;
+}
+
 void ParserConf::splitterConfinguration(std::string confFile) {
 	std::string::size_type start;
 	std::string::size_type end = 0;
