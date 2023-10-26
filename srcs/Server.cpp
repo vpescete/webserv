@@ -5,8 +5,7 @@ Server::Server(Configuration &config) : _conf(&config) {
 	_setPort();
 	_setHost();
 	this->serverConnection();
-	_serverAddress.sin_addr.s_addr = inet_addr(_host.c_str());
-	_serverAddress.sin_port = htons(_port);
+	// _serverAddress.sin_addr.s_addr = inet_addr(_host.c_str());
 	
 }
 
@@ -52,6 +51,18 @@ void Server::serverConnection() {
 		std::cout << RED << "Host " << getHost() << " is not valid" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	int opt = 1;
+
+	// options to let socket reutilize the same port
+	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(opt))) {
+		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
+		exit(EXIT_FAILURE); 
+	}
+	if (setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(opt))) {
+		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
+		exit(EXIT_FAILURE); 
+	}
+	_serverAddress.sin_port = htons(_port);
 	
 }
 
