@@ -1,7 +1,6 @@
 #ifndef WEBSERV_H
 # define WEBSERV_H
 
-
 // ANSI Colors
 # define RED "\e[0;31m"
 # define GREEN "\e[0;32m"
@@ -11,11 +10,18 @@
 # define CYAN "\e[0;36m"
 # define RESET "\e[0m"
 
-
 // MACRO 
 # define DEFAULT_PATH "conf/server.conf"
 # define DEFAULT_ERROR_PAGE "errors/500.html"
 
+// ERROR PAGES MACRO
+# define E_400 "error_page_400"
+# define E_403 "error_page_403"
+# define E_404 "error_page_404"
+# define E_405 "error_page_405"
+# define E_406 "error_page_406"
+# define E_413 "error_page_413"
+# define E_500 "error_page_500"
 
 // C Library
 # include <ctype.h>
@@ -47,7 +53,9 @@
 
 
 // class
-# include "ServerConf.hpp"
+# include "ParserConf.hpp"
 # include "Server.hpp"
+# include "Configuration.hpp"
+# include "LocationPath.hpp"
 
 #endif

@@ -2,10 +2,32 @@
 
 bool	running = 1;
 
+const int kQueue = kqueue();
+
 static void signal_handler(int i) {
 	if (i == SIGINT)
 		running = 0;
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
+}
+
+void	disconnect(std::vector<Server *> servers) {
+	std::vector<Server *>::iterator	it = servers.begin();
+	std::vector<Server *>::iterator	end = servers.end();
+	for (; it != end; it++) {
+		(*it)->serverDisconnection();
+		delete(*it);
+	}
+}
+
+std::vector<Server *>	startServer(std::vector<Configuration> vectConfig) {
+	std::vector<Server *> servers;
+	std::vector<Configuration>::iterator it = vectConfig.begin();
+	for (; it != vectConfig.end(); ++it) {
+		Server *s = new Server((*it));
+		std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
+		servers.push_back(s);
+	}
+	return servers;
 }
 
 int	main(int ac, char *av[]) {
@@ -15,11 +37,15 @@ int	main(int ac, char *av[]) {
 		return EXIT_FAILURE;
 	}
 	signal(SIGINT, signal_handler);
-	ServerConf confFile(av[1]);
-	// std::cout << confFile.getHost() << std::endl;
-	// std::cout << confFile.getPort() << std::endl;
-	Server	svr(confFile);
-	while (running)
+	ParserConf confFile(av[1]);
+
+	std::vector<Server *> servers;
+	servers = startServer(confFile.getConf());
+	while (running) {
 		;
+	}
+	disconnect(servers);
+	close(kQueue);
+	return 0;
 }
 
