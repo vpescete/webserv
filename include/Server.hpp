@@ -33,6 +33,7 @@ class Server {
 		const struct sockaddr_in& getServerAddress() const;
 		void		SocketException();
 		void		serverConnection();
+		void		serverDisconnection();
 };
 
 #endif

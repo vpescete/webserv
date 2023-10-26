@@ -5,8 +5,6 @@ Server::Server(Configuration &config) : _conf(&config) {
 	_setPort();
 	_setHost();
 	this->serverConnection();
-	// _serverAddress.sin_addr.s_addr = inet_addr(_host.c_str());
-	
 }
 
 Server::~Server() {
@@ -64,6 +62,10 @@ void Server::serverConnection() {
 	}
 	_serverAddress.sin_port = htons(_port);
 	
+}
+
+void Server::serverDisconnection() {
+	close(_socketFD);
 }
 
 void Server::_setPort() {

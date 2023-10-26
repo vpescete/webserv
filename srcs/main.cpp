@@ -10,6 +10,15 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
+void	disconnect(std::vector<Server *> servers) {
+	std::vector<Server *>::iterator	it = servers.begin();
+	std::vector<Server *>::iterator	end = servers.end();
+	for (; it != end; it++) {
+		(*it)->serverDisconnection();
+		delete(*it);
+	}
+}
+
 std::vector<Server *>	startServer(std::vector<Configuration> vectConfig) {
 	std::vector<Server *> servers;
 	std::vector<Configuration>::iterator it = vectConfig.begin();
@@ -35,5 +44,8 @@ int	main(int ac, char *av[]) {
 	while (running) {
 		;
 	}
+	disconnect(servers);
+	close(kQueue);
+	return 0;
 }
 
