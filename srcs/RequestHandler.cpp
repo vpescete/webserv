@@ -91,7 +91,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 			}
 			if (headerEnd[0] == '-') {
 			// std::cout << YELLOW << "Headers:\n" << buffer << RESET << std::endl;
-			// Extract the body (if it exists)
+			// Extract the body (if the call is upload without images)
 			std::string bodyStart = headerEnd + 4;
 			if (bodyStart.length() > 0) {
 					// std::cout << RED << "Body:\n" << bodyStart << RESET << std::endl;
@@ -111,34 +111,19 @@ void   	RequestHandler::parsereq(std::string buffer) {
 						value = bodyStart.substr(start + 2, end - start - 2);
 						removeWhitespace(key);
 						removeWhitespace(value);
-						// std::cout << YELLOW << bodyStart << RESET << std::endl;
-						// std::cout << GREEN << key << RESET << std::endl << BLUE << value << RESET << std::endl;
 						_mapBody.insert(std::make_pair<std::string, std::string>(key, value));
 						// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 					}
 					bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
-					// std::cout << bodyStart << std::endl;
 				}
 				j = 0;
 				while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
 					j++;
 				bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
 				_bodyEnd = bodyStart;
-				// std::cout << BLUE << _bodyEnd << RESET << std::endl;
-				// start = 0;
-				// end = bodyStart.find(':');
-				// key = bodyStart.substr(start, end);
-				// while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
-				// 	j++;
-				// value = bodyStart.substr(end + 2, j - end - 2);
-				// _mapBody.insert(std::make_pair<std::string, std::string>(key, value));
-				//std::cout << BLUE << key << RESET << std::endl << YELLOW << value << RESET << std::endl << GREEN << bodyStart << RESET << std::endl;
-				//printf("%s --- %lu\n", bodyStart.c_str(), end);
-				//std::cout << BLUE << _bodyStart << RESET << std::endl;
-				//printf("\n %s, %i\n", bodyStart, j);
-				//_bodyStart = 
 				}
 			}
+			// Extract the body (if the call is anything else)
 			else
 				_bodyEnd = headerEnd;
 		}
