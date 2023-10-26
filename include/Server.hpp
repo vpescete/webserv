@@ -10,6 +10,7 @@ class Server {
 	private:
 		u_int16_t		_port;
 		std::string		_host;
+		int				_socketFD;
 		Configuration	*_conf;
 
 		// setter member
@@ -28,8 +29,10 @@ class Server {
 		// getter
 		u_int16_t	getPort();
 		std::string	getHost();
+		int			getSocketFD();
 		const struct sockaddr_in& getServerAddress() const;
-
+		void		SocketException();
+		void		serverConnection();
 };
 
 #endif
