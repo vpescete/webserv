@@ -11,14 +11,29 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
-int	main(int ac, char *av[]) {
-
-	if (ac != 2) {
-		std::cout << RED << "ERROR: wrong number of arguments" << RESET <<std::endl;
-		return EXIT_FAILURE;
+void	disconnect(std::vector<Server *> servers) {
+	std::vector<Server *>::iterator	it = servers.begin();
+	std::vector<Server *>::iterator	end = servers.end();
+	for (; it != end; it++) {
+		(*it)->serverDisconnection();
+		delete(*it);
 	}
-	signal(SIGINT, signal_handler);
-	ServerConf confFile(av[1]);
+}
+
+std::vector<Server *>	startServer(std::vector<Configuration> vectConfig) {
+	std::vector<Server *> servers;
+	std::vector<Configuration>::iterator it = vectConfig.begin();
+	for (; it != vectConfig.end(); ++it) {
+		Server *s = new Server((*it));
+		std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
+		servers.push_back(s);
+	}
+	return servers;
+}
+
+void fgiulian(int ac, char *av[])
+{
+  	ServerConf confFile(av[1]);
 	Server	svr(confFile);
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
@@ -102,5 +117,25 @@ int	main(int ac, char *av[]) {
 	close(serverSocket);
 	bufferino = NULL;
 	free(bufferino);
+}
+
+int	main(int ac, char *av[]) {
+
+	if (ac != 2) {
+		std::cout << RED << "ERROR: wrong number of arguments" << RESET <<std::endl;
+		return EXIT_FAILURE;
+	}
+	signal(SIGINT, signal_handler);
+
+	ParserConf confFile(av[1]);
+
+	std::vector<Server *> servers;
+	servers = startServer(confFile.getConf());
+	while (running) {
+		;
+	}
+	disconnect(servers);
+	close(kQueue);
+	return 0;
 }
 
