@@ -36,6 +36,7 @@
 # include <stdlib.h>
 # include <signal.h>
 # include <stdlib.h>
+# include <string.h>
 
 
 // C++ Library
@@ -55,6 +56,7 @@
 // class
 # include "ParserConf.hpp"
 # include "Server.hpp"
+# include "RequestHandler.hpp"
 # include "Configuration.hpp"
 # include "LocationPath.hpp"
 
