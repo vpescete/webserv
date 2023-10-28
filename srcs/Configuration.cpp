@@ -26,7 +26,7 @@ void	Configuration::_confSplitter(std::string configString) {
 			while (configString.find('}', end + 1) != std::string::npos)
 				end = configString.find('}', end + 1);
 			if(end != std::string::npos)
-				_map.insert(std::make_pair<std::string, std::string>(
+				_map.insert(std::pair<std::string, std::string>(
 					configString.substr(1, start - 1),
 					configString.substr(start + 1, end - start)));
 			configString = configString.substr(end, 0);
@@ -39,7 +39,7 @@ void	Configuration::_confSplitter(std::string configString) {
 		{
 			end = configString.find('\n', 0);
 			if(end != std::string::npos)
-				_map.insert(std::make_pair<std::string, std::string>(
+				_map.insert(std::pair<std::string, std::string>(
 					configString.substr(1, start - 1),
 					configString.substr(start + 1, end - start - 1)));
 			configString = configString.substr(end + 1);
@@ -48,7 +48,7 @@ void	Configuration::_confSplitter(std::string configString) {
 	start = configString.find('=', 0);
 	end = configString.find('\0', 0);
 	if(start != std::string::npos)
-		_map.insert(std::make_pair<std::string, std::string>(
+		_map.insert(std::pair<std::string, std::string>(
 			configString.substr(1, start - 1),
 			configString.substr(start + 1, end - 1)));
 	// std::map<std::string, std::string>::iterator it = _map.begin();
@@ -72,7 +72,7 @@ void Configuration::_setMapLocation() {
 		last = stringPath.find('/', last);
 		key = stringPath.substr(last, stringPath.find('\n', last) - last);
 		// std::cout << YELLOW << stringPath << RESET << std::endl;
-		_mapLocationPath.insert(std::make_pair<std::string, LocationPath>(key,
+		_mapLocationPath.insert(std::pair<std::string, LocationPath>(key,
 			LocationPath(stringPath.substr(start, end - start + 1), key)));
 		stringPath = stringPath.substr(end + 1);
 		end = stringPath.find('}', 0);
