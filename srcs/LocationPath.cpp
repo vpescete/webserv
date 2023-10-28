@@ -41,7 +41,7 @@ void LocationPath::_setMapPath(std::string confFile) {
 			key = confFile.substr(i, start - i);
 			value = confFile.substr(start + 1, end - start - 1);
 			// std::cout << key << " : " << value << std::endl;
-			_mapPath.insert(std::make_pair<std::string, std::string>(key, value));
+			_mapPath.insert(std::pair<std::string, std::string>(key, value));
 		}
 		confFile = confFile.substr(end + 1);
 	} while (end < confFile.size());
