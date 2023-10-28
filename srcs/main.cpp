@@ -19,11 +19,11 @@ void	disconnect(std::vector<Server *> servers) {
 	}
 }
 
-std::vector<Server *>	startServer(std::vector<Configuration> vectConfig) {
+std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuration> > mapConfig) {
 	std::vector<Server *> servers;
-	std::vector<Configuration>::iterator it = vectConfig.begin();
-	for (; it != vectConfig.end(); ++it) {
-		Server *s = new Server((*it));
+	std::map<std::string, std::vector<Configuration> >::iterator it = mapConfig.begin();
+	for (; it != mapConfig.end(); ++it) {
+		Server *s = new Server((*it).second[0]);
 		std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
 		servers.push_back(s);
 	}
@@ -40,7 +40,7 @@ int	main(int ac, char *av[]) {
 	ParserConf confFile(av[1]);
 
 	std::vector<Server *> servers;
-	servers = startServer(confFile.getConf());
+	servers = startServer(confFile.getMapConfig());
 	while (running) {
 		;
 	}
