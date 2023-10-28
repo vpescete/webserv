@@ -19,7 +19,7 @@ class Server {
 
 		// socket
 		struct sockaddr_in _serverAddress;
-		// struct kevent		_kevent;
+		struct kevent		_kevent;
 	public:
 		Server(Configuration& config);
 		// Server(Server & cpy);

@@ -4,6 +4,15 @@ bool	running = 1;
 
 const int kQueue = kqueue();
 
+int	getRightSocketFd(std::vector<Server *> servers, int ident) {
+	std::vector<Server *>::iterator it = servers.begin();
+	for (int i = 0; it != servers.end(); it++, i++) {
+		if ((**it).getSocketFD() == ident)
+			return i;
+	}
+	return -1;
+}
+
 static void signal_handler(int i) {
 	if (i == SIGINT)
 		running = 0;
@@ -41,8 +50,21 @@ int	main(int ac, char *av[]) {
 
 	std::vector<Server *> servers;
 	servers = startServer(confFile.getMapConfig());
+	RequestHandler req;
+	// char * bufferino = (char *)malloc(10000);
+
+	struct kevent events[MAXEVENTS];
 	while (running) {
-		;
+
+		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
+		for (int i = 0; i < numEvents; i++) {
+			int	index = getRightSocketFd(servers, events[i].ident);
+			if (index != -1) {
+				std::cout << "Puerco de: " << index << std::endl;
+			}
+			else
+				std::cout << RED << "Ensooma" << RESET << std::endl;
+		}
 	}
 	disconnect(servers);
 	close(kQueue);
