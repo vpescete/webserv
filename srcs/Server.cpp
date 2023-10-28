@@ -52,21 +52,23 @@ void Server::serverConnection() {
 	int opt = 1;
 
 	// options to let socket reutilize the same port
-	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(opt))) {
-		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
-		exit(EXIT_FAILURE);
-	}
-	if (setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(opt))) {
-		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
-		exit(EXIT_FAILURE);
-	}
+	setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(int));
+	setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(int));
+	// if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(opt))) {
+	// 	std::cout << RED << "Error with setsockopt" << RESET << std::endl;
+	// 	exit(EXIT_FAILURE);
+	// }
+	// if (setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(opt))) {
+	// 	std::cout << RED << "Error with setsockopt" << RESET << std::endl;
+	// 	exit(EXIT_FAILURE);
+	// }
 	_serverAddress.sin_port = htons(_port);
 	if (bind(_socketFD, (struct sockaddr*)&_serverAddress, sizeof(_serverAddress)) < 0) {
 		std::cout << RED << "Error: Fail to bind port " << getPort() << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	// Mette il server in ascolto su localhost
-	if (listen(_socketFD, 5) < 0) {
+	if (listen(_socketFD, 10) < 0) {
 		std::cout << RED << "Error: Fail to listet on socket" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}

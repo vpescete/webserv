@@ -9,8 +9,17 @@ void removeWhitespace(std::string& str) {
 	str.erase(std::remove_if(str.begin(), str.end(), isWhitespace), str.end());
 }
 
-ParserConf::ParserConf(std::string const pathFile) : _confFile(pathFile) {
-	
+void ParserConf::setMapConfig() {
+
+	std::vector<Configuration>::iterator it = _configurationServer.begin();
+	for (; it != _configurationServer.end(); it++) {
+		_mapConfig[(*it).getHostPort()].push_back(*it);
+	}
+}
+
+ParserConf::ParserConf(std::string const pathFile) : _confFile(pathFile)
+{
+
 	std::stringstream	buf;
 	buf << _confFile.rdbuf();
 	if (buf.fail()) {
@@ -22,7 +31,7 @@ ParserConf::ParserConf(std::string const pathFile) : _confFile(pathFile) {
 	std::vector<std::string>::iterator it = _confVector.begin();
 	for (; it != _confVector.end(); ++it) 
 		_configurationServer.push_back(Configuration(*it));
-
+	setMapConfig();
 }
 
 ParserConf::ParserConf(const ParserConf & cpy) {
@@ -49,6 +58,10 @@ std::string ParserConf::getServerName() {
 
 std::vector<Configuration> ParserConf::getConf() {
 	return _configurationServer;
+}
+
+std::map<std::string, std::vector<Configuration> > ParserConf::getMapConfig() {
+	return _mapConfig;
 }
 
 void ParserConf::splitterConfinguration(std::string confFile) {

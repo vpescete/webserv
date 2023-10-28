@@ -12,6 +12,10 @@ class ParserConf {
 		std::string		_configurationString;
 		std::vector<std::string>	_confVector;
 		std::vector<Configuration>	_configurationServer;
+		std::map<std::string, std::vector<Configuration> >	_mapConfig;
+
+		// setter member
+		void	setMapConfig();
 	public:
 		// costructor
 		ParserConf(const std::string pathFile);
@@ -22,12 +26,11 @@ class ParserConf {
 
 		// override operator
 		ParserConf& operator=(const ParserConf & rhs);
-
-		// setter member
 		
 		// getter member
 		std::string	getServerName();
 		std::vector<Configuration>	getConf();
+		std::map<std::string, std::vector<Configuration> >	getMapConfig();
 
 		// member function
 		void	splitterConfinguration(std::string confFile);
