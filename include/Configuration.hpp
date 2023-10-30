@@ -7,7 +7,7 @@ class LocationPath;
 
 class Configuration {
 	private:
-
+		
 		std::map<std::string, std::string> _map;
 		std::map<std::string, LocationPath> _mapLocationPath;
 

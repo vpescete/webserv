@@ -1,10 +1,11 @@
-#ifndef SERVER_HPP
-# define SERVER_HPP
+#ifndef GREATSERVER_HPP
+# define GREATSERVER_HPP
 
 #include "webserv.h"
 
 class ParserConf;
 class Configuration;
+class LocationPath;
 
 class Server {
 	private:
@@ -12,10 +13,12 @@ class Server {
 		std::string		_host;
 		int				_socketFD;
 		Configuration	*_conf;
+		std::map<std::string, LocationPath> _locationPathMap;
 
 		// setter member
 		void	_setPort();
 		void	_setHost();
+		void	_setLocationPathMap();
 
 		// socket
 		struct sockaddr_in _serverAddress;
@@ -35,6 +38,8 @@ class Server {
 		void		SocketException();
 		void		serverConnection(int kQueue);
 		void		serverDisconnection();
+		Configuration	*getConf();
+		std::string	getIndex();
 };
 
 #endif

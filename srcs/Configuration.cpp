@@ -71,9 +71,10 @@ void Configuration::_setMapLocation() {
 		end = stringPath.find('}', 0);
 		last = stringPath.find('/', last);
 		key = stringPath.substr(last, stringPath.find('\n', last) - last);
-		// std::cout << YELLOW << stringPath << RESET << std::endl;
+		// std::cout << YELLOW << key << RESET << std::endl;
 		_mapLocationPath.insert(std::pair<std::string, LocationPath>(key,
 			LocationPath(stringPath.substr(start, end - start + 1), key)));
+		// std::cout << YELLOW << key << RESET << std::endl;
 		stringPath = stringPath.substr(end + 1);
 		end = stringPath.find('}', 0);
 	} while (end < stringPath.size());

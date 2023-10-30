@@ -79,10 +79,20 @@ void Server::serverConnection(int kQueue) {
 	// possono essere utilizzati per gestire le operazioni di I/O in modo asincrono ed efficiente, il che è fondamentale per server web ad alte prestazioni.
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
+	_setLocationPathMap();
+	std::cout << CYAN << this->getIndex() << RESET << std::endl;
 }
 
 void Server::serverDisconnection() {
 	close(_socketFD);
+}
+
+Configuration *Server::getConf() {
+	return _conf;
+}
+
+std::string Server::getIndex() {
+	return _locationPathMap.at("/").getIndex();
 }
 
 void Server::_setPort() {
@@ -91,4 +101,8 @@ void Server::_setPort() {
 
 void Server::_setHost() {
 	_host = _conf->getHost();
+}
+
+void Server::_setLocationPathMap() {
+	_locationPathMap = getConf()->getLocationPath();
 }
