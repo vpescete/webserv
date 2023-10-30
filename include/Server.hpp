@@ -19,7 +19,7 @@ class Server {
 
 		// socket
 		struct sockaddr_in _serverAddress;
-		// struct kevent		_kevent;
+		struct kevent		_kevent;
 	public:
 		Server(Configuration& config);
 		// Server(Server & cpy);
@@ -31,9 +31,9 @@ class Server {
 		u_int16_t	getPort();
 		std::string	getHost();
 		int			getSocketFD();
-		const struct sockaddr_in& getServerAddress() const;
+		struct sockaddr_in* getServerAddress();
 		void		SocketException();
-		void		serverConnection();
+		void		serverConnection(int kQueue);
 		void		serverDisconnection();
 };
 

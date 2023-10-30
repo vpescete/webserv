@@ -13,6 +13,7 @@
 // MACRO 
 # define DEFAULT_PATH "conf/server.conf"
 # define DEFAULT_ERROR_PAGE "errors/500.html"
+# define MAXEVENTS 10
 
 // ERROR PAGES MACRO
 # define E_400 "error_page_400"
@@ -57,5 +58,6 @@
 # include "Server.hpp"
 # include "Configuration.hpp"
 # include "LocationPath.hpp"
+# include "RequestHandler.hpp"
 
 #endif
