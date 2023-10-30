@@ -4,9 +4,9 @@ bool	running = 1;
 
 const int kQueue = kqueue();
 
-int	getRightSocketFd(std::vector<Server *> diocane, int ident) {
-	std::vector<Server *>::iterator it = diocane.begin();
-	for (int i = 0; it != diocane.end(); it++, i++) {
+int	getRightSocketFd(std::vector<Server *> svrs, int ident) {
+	std::vector<Server *>::iterator it = svrs.begin();
+	for (int i = 0; it != svrs.end(); it++, i++) {
 		// std::cout << (**it).getSocketFD() << " : " << ident << std::endl;
 		if ((**it).getSocketFD() == ident)
 			return i;
@@ -20,9 +20,9 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
-void	disconnect(std::vector<Server *> diocane) {
-	std::vector<Server *>::iterator	it = diocane.begin();
-	std::vector<Server *>::iterator	end = diocane.end();
+void	disconnect(std::vector<Server *> svrs) {
+	std::vector<Server *>::iterator	it = svrs.begin();
+	std::vector<Server *>::iterator	end = svrs.end();
 	for (; it != end; it++) {
 		(*it)->serverDisconnection();
 		delete(*it);
@@ -30,15 +30,15 @@ void	disconnect(std::vector<Server *> diocane) {
 }
 
 std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuration> > mapConfig) {
-	std::vector<Server *> diocane;
+	std::vector<Server *> svrs;
 	std::map<std::string, std::vector<Configuration> >::iterator it = mapConfig.begin();
 	for (; it != mapConfig.end(); ++it) {
 		Server *s = new Server((*it).second[0]);
 		s->serverConnection(kQueue);
 		// std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
-		diocane.push_back(s);
+		svrs.push_back(s);
 	}
-	return diocane;
+	return svrs;
 }
 
 int	main(int ac, char *av[]) {
@@ -50,8 +50,8 @@ int	main(int ac, char *av[]) {
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
 
-	std::vector<Server *> diocane;
-	diocane = startServer(confFile.getMapConfig());
+	std::vector<Server *> svrs;
+	svrs = startServer(confFile.getMapConfig());
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
 
@@ -63,15 +63,15 @@ int	main(int ac, char *av[]) {
 		// std::cout << RED << numEvents << RESET << std::endl;
 		// sleep(10000);
 		for (int i = 0; i < numEvents; i++) {
-			int	index = getRightSocketFd(diocane, events[i].ident);
+			int	index = getRightSocketFd(svrs, events[i].ident);
 			if (index != -1) {
-				int clientSocket = accept(diocane[index]->getSocketFD(), (struct sockaddr *)(*diocane[index]).getServerAddress(), (socklen_t*)&addrlen);
+				int clientSocket = accept(svrs[index]->getSocketFD(), (struct sockaddr *)(*svrs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0) {
 					break;
 				}
 				req.parsereq(bufferino);
 				if (req.getPath() == "/") {
-					std::ifstream file(diocane[index]->getIndex());
+					std::ifstream file(svrs[index]->getIndex());
 					if (file.is_open()) {
 						std::stringstream buffer;
 						buffer << file.rdbuf();
@@ -112,10 +112,10 @@ int	main(int ac, char *av[]) {
 				// std::cout << "Puerco de: " << index << std::endl;
 			}
 			else
-				std::cout << RED << getRightSocketFd(diocane, events[i].ident) << RESET << std::endl;
+				std::cout << RED << getRightSocketFd(svrs, events[i].ident) << RESET << std::endl;
 		}
 	}
-	disconnect(diocane);
+	disconnect(svrs);
 	close(kQueue);
 	return 0;
 }
