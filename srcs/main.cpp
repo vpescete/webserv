@@ -4,9 +4,9 @@ bool	running = 1;
 
 const int kQueue = kqueue();
 
-int	getRightSocketFd(std::vector<Server *> diocane, int ident) {
-	std::vector<Server *>::iterator it = diocane.begin();
-	for (int i = 0; it != diocane.end(); it++, i++) {
+int	getRightSocketFd(std::vector<Server *> srvs, int ident) {
+	std::vector<Server *>::iterator it = srvs.begin();
+	for (int i = 0; it != srvs.end(); it++, i++) {
 		// std::cout << (**it).getSocketFD() << " : " << ident << std::endl;
 		if ((**it).getSocketFD() == ident)
 			return i;
@@ -20,9 +20,9 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
-void	disconnect(std::vector<Server *> diocane) {
-	std::vector<Server *>::iterator	it = diocane.begin();
-	std::vector<Server *>::iterator	end = diocane.end();
+void	disconnect(std::vector<Server *> srvs) {
+	std::vector<Server *>::iterator	it = srvs.begin();
+	std::vector<Server *>::iterator	end = srvs.end();
 	for (; it != end; it++) {
 		(*it)->serverDisconnection();
 		delete(*it);
@@ -30,15 +30,15 @@ void	disconnect(std::vector<Server *> diocane) {
 }
 
 std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuration> > mapConfig) {
-	std::vector<Server *> diocane;
+	std::vector<Server *> srvs;
 	std::map<std::string, std::vector<Configuration> >::iterator it = mapConfig.begin();
 	for (; it != mapConfig.end(); ++it) {
 		Server *s = new Server((*it).second[0]);
 		s->serverConnection(kQueue);
-		// std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
-		diocane.push_back(s);
+		std::cout << CYAN << "Server listening on " << YELLOW << s->getHost() << RESET << ":" << GREEN << s->getPort() << RESET << std::endl;
+		srvs.push_back(s);
 	}
-	return diocane;
+	return srvs;
 }
 
 int	main(int ac, char *av[]) {
@@ -50,8 +50,8 @@ int	main(int ac, char *av[]) {
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
 
-	std::vector<Server *> diocane;
-	diocane = startServer(confFile.getMapConfig());
+	std::vector<Server *> srvs;
+	srvs = startServer(confFile.getMapConfig());
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
 
@@ -60,18 +60,16 @@ int	main(int ac, char *av[]) {
 	while (running) {
 
 		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
-		// std::cout << RED << numEvents << RESET << std::endl;
-		// sleep(10000);
 		for (int i = 0; i < numEvents; i++) {
-			int	index = getRightSocketFd(diocane, events[i].ident);
+			int	index = getRightSocketFd(srvs, events[i].ident);
 			if (index != -1) {
-				int clientSocket = accept(diocane[index]->getSocketFD(), (struct sockaddr *)(*diocane[index]).getServerAddress(), (socklen_t*)&addrlen);
+				int clientSocket = accept(srvs[index]->getSocketFD(), (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0) {
 					break;
 				}
 				req.parsereq(bufferino);
 				if (req.getPath() == "/") {
-					std::ifstream file(diocane[index]->getIndex());
+					std::ifstream file(srvs[index]->getIndex());
 					if (file.is_open()) {
 						std::stringstream buffer;
 						buffer << file.rdbuf();
@@ -85,12 +83,9 @@ int	main(int ac, char *av[]) {
 						std::stringstream buffer;
 						buffer << file.rdbuf();
 						std::string content = buffer.str();
-						// std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-						// send(clientSocket, response.c_str(), response.length(), 0);
 						std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length:  " + std::to_string(content.length()) + "\r\n\r\n" + content;
 						send(clientSocket, response.c_str(), response.length(), 0);
 					}
-					// Read and send the file requested from the path in the request
 				}
 				else {
 					std::ifstream file("." + req.getPath());
@@ -107,15 +102,13 @@ int	main(int ac, char *av[]) {
 				}
 				std::cout << req.getPath()<< std::endl;
 				memset(bufferino, 0, 10000);
-				// Chiudi la connessione con il client
 				close(clientSocket);
-				// std::cout << "Puerco de: " << index << std::endl;
 			}
 			else
-				std::cout << RED << getRightSocketFd(diocane, events[i].ident) << RESET << std::endl;
+				std::cout << RED << getRightSocketFd(srvs, events[i].ident) << RESET << std::endl;
 		}
 	}
-	disconnect(diocane);
+	disconnect(srvs);
 	close(kQueue);
 	return 0;
 }
