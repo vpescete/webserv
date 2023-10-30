@@ -4,10 +4,9 @@ bool	running = 1;
 
 const int kQueue = kqueue();
 
-int	getRightSocketFd(std::vector<Server *> svrs, int ident) {
-	std::vector<Server *>::iterator it = svrs.begin();
-	for (int i = 0; it != svrs.end(); it++, i++) {
-		// std::cout << (**it).getSocketFD() << " : " << ident << std::endl;
+int	getRightSocketFd(std::vector<Server *> srvs, int ident) {
+	std::vector<Server *>::iterator it = srvs.begin();
+	for (int i = 0; it != srvs.end(); it++, i++) {
 		if ((**it).getSocketFD() == ident)
 			return i;
 	}
@@ -20,9 +19,9 @@ static void signal_handler(int i) {
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
 }
 
-void	disconnect(std::vector<Server *> svrs) {
-	std::vector<Server *>::iterator	it = svrs.begin();
-	std::vector<Server *>::iterator	end = svrs.end();
+void	disconnect(std::vector<Server *> srvs) {
+	std::vector<Server *>::iterator	it = srvs.begin();
+	std::vector<Server *>::iterator	end = srvs.end();
 	for (; it != end; it++) {
 		(*it)->serverDisconnection();
 		delete(*it);
@@ -30,15 +29,15 @@ void	disconnect(std::vector<Server *> svrs) {
 }
 
 std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuration> > mapConfig) {
-	std::vector<Server *> svrs;
+	std::vector<Server *> srvs;
 	std::map<std::string, std::vector<Configuration> >::iterator it = mapConfig.begin();
 	for (; it != mapConfig.end(); ++it) {
 		Server *s = new Server((*it).second[0]);
 		s->serverConnection(kQueue);
-		// std::cout << CYAN << s->getHost() << RESET << " : " << GREEN << s->getPort() << RESET << std::endl;
-		svrs.push_back(s);
+		std::cout << CYAN << "Server listening on " << YELLOW << s->getHost() << RESET << ":" << GREEN << s->getPort() << RESET << std::endl;
+		srvs.push_back(s);
 	}
-	return svrs;
+	return srvs;
 }
 
 int	main(int ac, char *av[]) {
@@ -50,8 +49,8 @@ int	main(int ac, char *av[]) {
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
 
-	std::vector<Server *> svrs;
-	svrs = startServer(confFile.getMapConfig());
+	std::vector<Server *> srvs;
+	srvs = startServer(confFile.getMapConfig());
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
 
@@ -60,17 +59,15 @@ int	main(int ac, char *av[]) {
 	while (running) {
 
 		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
-		// std::cout << RED << numEvents << RESET << std::endl;
-		// sleep(10000);
 		for (int i = 0; i < numEvents; i++) {
-			int	index = getRightSocketFd(svrs, events[i].ident);
+			int	index = getRightSocketFd(srvs, events[i].ident);
 			if (index != -1) {
-				int clientSocket = accept(svrs[index]->getSocketFD(), (struct sockaddr *)(*svrs[index]).getServerAddress(), (socklen_t*)&addrlen);
+				int clientSocket = accept(srvs[index]->getSocketFD(), (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0) {
 					break;
 				}
 				req.parsereq(bufferino);
-				req.setResponse(svrs, clientSocket, index);
+				req.setResponse(srvs, clientSocket, index);
 				// if (req.getPath() == "/") {
 				// 	std::ifstream file(svrs[index]->getIndex());
 				// 	if (file.is_open()) {
@@ -108,15 +105,13 @@ int	main(int ac, char *av[]) {
 				// }
 				//std::cout << req.getPath()<< std::endl;
 				memset(bufferino, 0, 10000);
-				// Chiudi la connessione con il client
 				close(clientSocket);
-				// std::cout << "Puerco de: " << index << std::endl;
 			}
 			else
-				std::cout << RED << getRightSocketFd(svrs, events[i].ident) << RESET << std::endl;
+				std::cout << RED << getRightSocketFd(srvs, events[i].ident) << RESET << std::endl;
 		}
 	}
-	disconnect(svrs);
+	disconnect(srvs);
 	close(kQueue);
 	return 0;
 }
