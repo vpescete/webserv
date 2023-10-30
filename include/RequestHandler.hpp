@@ -18,6 +18,7 @@ class RequestHandler {
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
+		void setResponse(std::vector<Server *> svrs, int clientSocket, int index);
 };
 
 #endif

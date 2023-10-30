@@ -143,3 +143,41 @@ std::string RequestHandler::getPath() {
 std::string RequestHandler::getProtocol() {
 	return (_protocol);
 }
+
+void	RequestHandler::setResponse(std::vector<Server *> svrs, int clientSocket, int index) {
+	if (_path == "/") {
+		std::ifstream file(svrs[index]->getIndex());
+		if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string content = buffer.str();
+			std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			send(clientSocket, response.c_str(), response.length(), 0);
+			
+		}
+		else {
+			std::ifstream file("./errors/404.html");
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string content = buffer.str();
+			// std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			// send(clientSocket, response.c_str(), response.length(), 0);
+			std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length:  " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			send(clientSocket, response.c_str(), response.length(), 0);
+		}
+		// Read and send the file requested from the path in the request
+	}
+	else {
+		std::ifstream file("." + _path);
+		if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string content = buffer.str();
+			std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			send(clientSocket, response.c_str(), response.length(), 0);
+		} else {
+			std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
+			send(clientSocket, response.c_str(), response.length(), 0);
+		}
+	}
+}
