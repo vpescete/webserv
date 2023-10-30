@@ -31,9 +31,9 @@ class Server {
 		u_int16_t	getPort();
 		std::string	getHost();
 		int			getSocketFD();
-		const struct sockaddr_in& getServerAddress() const;
+		struct sockaddr_in* getServerAddress();
 		void		SocketException();
-		void		serverConnection();
+		void		serverConnection(int kQueue);
 		void		serverDisconnection();
 };
 

@@ -4,7 +4,6 @@
 Server::Server(Configuration &config) : _conf(&config) {
 	_setPort();
 	_setHost();
-	this->serverConnection();
 }
 
 Server::~Server() {
@@ -23,8 +22,8 @@ int Server::getSocketFD() {
 	return _socketFD;
 }
 
-const sockaddr_in &Server::getServerAddress() const {
-	return _serverAddress;
+sockaddr_in *Server::getServerAddress() {
+	return &_serverAddress;
 }
 
 void Server::SocketException() {
@@ -37,7 +36,7 @@ void Server::SocketException() {
 	}
 }
 
-void Server::serverConnection() {
+void Server::serverConnection(int kQueue) {
 	_socketFD = socket(AF_INET, SOCK_STREAM, 0);
 	this->SocketException();
 	_serverAddress.sin_family = AF_INET;
@@ -79,6 +78,7 @@ void Server::serverConnection() {
 	// tra cui eventi di socket, file, segnali, e altro.In un contesto di server web, struct kevent e il sistema kqueue
 	// possono essere utilizzati per gestire le operazioni di I/O in modo asincrono ed efficiente, il che è fondamentale per server web ad alte prestazioni.
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
+	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
 }
 
 void Server::serverDisconnection() {
