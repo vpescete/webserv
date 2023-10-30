@@ -105,7 +105,7 @@ int	main(int ac, char *av[]) {
 						send(clientSocket, response.c_str(), response.length(), 0);
 					}
 				}
-				std::cout << req.getPath()<< std::endl;
+				//std::cout << req.getPath()<< std::endl;
 				memset(bufferino, 0, 10000);
 				// Chiudi la connessione con il client
 				close(clientSocket);

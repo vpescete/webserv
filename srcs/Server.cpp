@@ -80,7 +80,7 @@ void Server::serverConnection(int kQueue) {
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
 	_setLocationPathMap();
-	std::cout << CYAN << this->getIndex() << RESET << std::endl;
+	//std::cout << CYAN << this->getIndex() << RESET << std::endl;
 }
 
 void Server::serverDisconnection() {
