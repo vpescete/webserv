@@ -68,13 +68,13 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	{
 		const char* headerEnd = strstr(buffer.c_str(), "\r\n\r\n");
 		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
-		std::cout << BLUE << buffer << RESET << std::endl;
+		// std::cout << BLUE << buffer << RESET << std::endl;
 		int k = 0;
 		while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
 			headerEnd++;
 		if (headerEnd != NULL) {
 			// Parse and print the headers
-			std::cout << headerEnd << std::endl;
+			// std::cout << headerEnd << std::endl;
 			while (end < temp2.size())
 			{
 				start = temp2.find(':', 0);

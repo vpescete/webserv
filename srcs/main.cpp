@@ -7,7 +7,6 @@ const int kQueue = kqueue();
 int	getRightSocketFd(std::vector<Server *> srvs, int ident) {
 	std::vector<Server *>::iterator it = srvs.begin();
 	for (int i = 0; it != srvs.end(); it++, i++) {
-		// std::cout << (**it).getSocketFD() << " : " << ident << std::endl;
 		if ((**it).getSocketFD() == ident)
 			return i;
 	}
@@ -100,7 +99,7 @@ int	main(int ac, char *av[]) {
 						send(clientSocket, response.c_str(), response.length(), 0);
 					}
 				}
-				std::cout << req.getPath()<< std::endl;
+				// std::cout << req.getPath()<< std::endl;
 				memset(bufferino, 0, 10000);
 				close(clientSocket);
 			}

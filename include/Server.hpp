@@ -28,7 +28,7 @@ class Server {
 		// Server(Server & cpy);
 		~Server();
 
-		// Server operator=(Server & rhs);
+		Server operator=(Server & rhs);
 
 		// getter
 		u_int16_t	getPort();
@@ -39,6 +39,7 @@ class Server {
 		void		serverConnection(int kQueue);
 		void		serverDisconnection();
 		Configuration	*getConf();
+		struct kevent	getKevent();
 		std::string	getIndex();
 };
 

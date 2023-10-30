@@ -9,6 +9,12 @@ Server::Server(Configuration &config) : _conf(&config) {
 Server::~Server() {
 }
 
+Server Server::operator=(Server &rhs) {
+	if (this->_host != rhs._host)
+		*this = rhs;
+	return *this;
+}
+
 u_int16_t Server::getPort() {
 
 	return this->_port;
@@ -51,8 +57,6 @@ void Server::serverConnection(int kQueue) {
 	int opt = 1;
 
 	// options to let socket reutilize the same port
-	// setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(int));
-	// setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(int));
 	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(opt))) {
 		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
 		exit(EXIT_FAILURE);
@@ -88,6 +92,10 @@ void Server::serverDisconnection() {
 
 Configuration *Server::getConf() {
 	return _conf;
+}
+
+struct kevent Server::getKevent() {
+	return _kevent;
 }
 
 std::string Server::getIndex() {
