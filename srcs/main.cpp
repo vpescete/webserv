@@ -51,7 +51,7 @@ int	main(int ac, char *av[]) {
 
 	std::vector<Server *> srvs;
 	srvs = startServer(confFile.getMapConfig());
-	RequestHandler req;
+	RequestHandler req(srvs);
 	char * bufferino = (char *)malloc(10000);
 
 	struct kevent events[MAXEVENTS];
@@ -67,7 +67,7 @@ int	main(int ac, char *av[]) {
 					break;
 				}
 				req.parsereq(bufferino);
-				req.setResponse(srvs, clientSocket, index);
+				req.setResponse(clientSocket, index);
 				// if (req.getPath() == "/") {
 				// 	std::ifstream file(svrs[index]->getIndex());
 				// 	if (file.is_open()) {

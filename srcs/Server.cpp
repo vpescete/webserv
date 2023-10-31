@@ -113,3 +113,7 @@ void Server::_setHost() {
 void Server::_setLocationPathMap() {
 	_locationPathMap = getConf()->getLocationPath();
 }
+
+std::map<std::string, LocationPath> Server::getLocationPathMap() {
+	return _locationPathMap;
+}
