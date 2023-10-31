@@ -48,7 +48,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	std::string value;
 	std::string temp2;
 	temp2 = buffer.substr(i + 1, buffer.length());
-	if (_method == "GET") {
+	if (_method == "GET" || _method == "DELETE") {
 		while (end < temp2.size())
 		{
 			start = temp2.find(':', 0);
