@@ -49,9 +49,9 @@ int	main(int ac, char *av[]) {
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
 
-	std::vector<Server *> srvs;
-	srvs = startServer(confFile.getMapConfig());
-	RequestHandler req(srvs);
+	std::vector<Server *> svrs;
+	svrs = startServer(confFile.getMapConfig());
+	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
 
 	struct kevent events[MAXEVENTS];
@@ -60,14 +60,14 @@ int	main(int ac, char *av[]) {
 
 		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
 		for (int i = 0; i < numEvents; i++) {
-			int	index = getRightSocketFd(srvs, events[i].ident);
+			int	index = getRightSocketFd(svrs, events[i].ident);
 			if (index != -1) {
-				int clientSocket = accept(srvs[index]->getSocketFD(), (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
+				int clientSocket = accept(svrs[index]->getSocketFD(), (struct sockaddr *)(*svrs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0) {
 					break;
 				}
 				req.parsereq(bufferino);
-				req.setResponse(clientSocket, index);
+				req.setResponse(svrs[index], clientSocket);
 				// if (req.getPath() == "/") {
 				// 	std::ifstream file(svrs[index]->getIndex());
 				// 	if (file.is_open()) {
@@ -108,10 +108,10 @@ int	main(int ac, char *av[]) {
 				close(clientSocket);
 			}
 			else
-				std::cout << RED << getRightSocketFd(srvs, events[i].ident) << RESET << std::endl;
+				std::cout << RED << getRightSocketFd(svrs, events[i].ident) << RESET << std::endl;
 		}
 	}
-	disconnect(srvs);
+	disconnect(svrs);
 	close(kQueue);
 	return 0;
 }

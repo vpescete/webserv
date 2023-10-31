@@ -2,17 +2,6 @@
 
 RequestHandler::RequestHandler(){}
 
-RequestHandler::RequestHandler(std::vector<Server *> srvs){
-	int j = 0;
-	while(j < (int)srvs.size()) {
-		if (srvs[j] && srvs[j]->getConf()) {
-			_locationPathMap.push_back(srvs[j]->getLocationPathMap());
-		}
-		j++;
-
-	}
-}
-
 RequestHandler::~RequestHandler(){}
 
 void   	RequestHandler::parsereq(std::string buffer) {
@@ -155,10 +144,9 @@ std::string RequestHandler::getProtocol() {
 	return (_protocol);
 }
 
-void	RequestHandler::setResponse(int clientSocket, int index) {
+void	RequestHandler::setResponse(Server* svr, int clientSocket) {
 	if (_path == "/") {
-		//std::ifstream file(svrs[index]->getIndex());
-		std::ifstream file(getIndex(index));
+		std::ifstream file(svr->getIndex());
 		if (file.is_open()) {
 			std::stringstream buffer;
 			buffer << file.rdbuf();
@@ -192,8 +180,4 @@ void	RequestHandler::setResponse(int clientSocket, int index) {
 			send(clientSocket, response.c_str(), response.length(), 0);
 		}
 	}
-}
-
-std::string RequestHandler::getIndex(int index) {
-	return _locationPathMap[index].at("/").getIndex();
 }

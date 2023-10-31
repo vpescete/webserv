@@ -15,16 +15,14 @@ class RequestHandler {
 		std::string _bodyEnd;
 		std::map <std::string, std::string> _mapBody;
 		std::vector<std::map<std::string, LocationPath> > _locationPathMap;
-		RequestHandler();
 	public:
-		RequestHandler(std::vector<Server *> srvs);
+		RequestHandler();
 		~RequestHandler();
 		void parsereq(std::string buffer);
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
-		void setResponse(int clientSocket, int index);
-		std::string getIndex(int index);
+		void setResponse(Server* svr, int clientSocket);
 };
 
 #endif
