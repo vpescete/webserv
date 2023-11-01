@@ -69,9 +69,12 @@ int	main(int ac, char *av[]) {
 				}
 				req.parsereq(bufferino);
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
-				if ((open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) || ((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)))
-
+				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)) || (open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
+					if (open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
+						req.autoIndex(clientSocket);
+					}
 					break;
+				}
 				req.setResponse(srvs[index], clientSocket);
 				memset(bufferino, 0, 10000);
 				close(clientSocket);
