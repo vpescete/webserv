@@ -68,50 +68,11 @@ int	main(int ac, char *av[]) {
 					break;
 				}
 				req.parsereq(bufferino);
-				//placeholder, if condition to change
-				if ((open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) || (req.getMethod() == "GET" && req.getPath() == "/www"))
-				{
-					req.autoIndex(clientSocket);
-					break;
-				}
-				req.setResponse(srvs[index], clientSocket);
-				// if (req.getPath() == "/") {
-				// 	std::ifstream file(srvs[index]->getIndex());
-				// 	if (file.is_open()) {
-				// 		std::stringstream buffer;
-				// 		buffer << file.rdbuf();
-				// 		std::string content = buffer.str();
-				// 		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-				// 		send(clientSocket, response.c_str(), response.length(), 0);
-						
-				// 	}
-				// 	else {
-				// 		std::ifstream file("./errors/404.html");
-				// 		std::stringstream buffer;
-				// 		buffer << file.rdbuf();
-				// 		std::string content = buffer.str();
-				// 		// std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-				// 		// send(clientSocket, response.c_str(), response.length(), 0);
-				// 		std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length:  " + std::to_string(content.length()) + "\r\n\r\n" + content;
-				// 		send(clientSocket, response.c_str(), response.length(), 0);
-				// 	}
-				// 	// Read and send the file requested from the path in the request
-				// }
-				// else {
-				// 	std::ifstream file("." + req.getPath());
-				// 	if (file.is_open()) {
-				// 		std::stringstream buffer;
-				// 		buffer << file.rdbuf();
-				// 		std::string content = buffer.str();
-				// 		std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-				// 		send(clientSocket, response.c_str(), response.length(), 0);
-				// 	} else {
-				// 		std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-				// 		send(clientSocket, response.c_str(), response.length(), 0);
-				// 	}
-				// }
-				//std::cout << req.getPath()<< std::endl;
+				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
+				if ((open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) || ((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)))
 
+					break;
+				req.setResponse(srvs[index], clientSocket);
 				memset(bufferino, 0, 10000);
 				close(clientSocket);
 			}

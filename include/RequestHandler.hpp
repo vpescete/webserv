@@ -23,7 +23,7 @@ class RequestHandler {
 		std::string getPath();
 		std::string getProtocol();
 		void setResponse(Server* svr, int clientSocket);
-		void autoIndex(int clientSocket);
+		bool autoIndex(int clientSocket);
 };
 
 #endif

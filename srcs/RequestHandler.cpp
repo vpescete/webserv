@@ -183,10 +183,12 @@ void	RequestHandler::setResponse(Server* svr, int clientSocket) {
 	}
 }
 
-void	RequestHandler::autoIndex(int clientSocket) {
-	//autoindex working only in www folder with links tocca learn how to make it work also with tmp folder
+bool	RequestHandler::autoIndex(int clientSocket) {
+	//autoindex working also recursely
 	std::string autoInd = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:"; //16\n\n";
-	std::string dir_path = "./www";
+	std::string dir_path = getPath();
+	if (dir_path.back() != '/')
+		dir_path += "/";
 	std::string beforeBody = "\n\n<html>\n<body>\n<h1>Autoindex</h1>\n<ul>\n";
 	std::string bodyText;
 	std::string afterBody;
@@ -194,17 +196,14 @@ void	RequestHandler::autoIndex(int clientSocket) {
 	int contentLength = beforeBody.length() - 2;
 	DIR* dir;
 	struct dirent *entry;
-	if ((dir = opendir(dir_path.c_str())) == NULL) {
-		perror("opendir");
-		return ;
-	}
+	if ((dir = opendir(("." + dir_path).c_str())) == NULL)
+		return false;
 	int flag = 0;
 	while((entry = readdir(dir)) != NULL) {
 		if (flag != 0)
-		//now working cause i putt www hard-coded gotta understand that
-			bodyText = bodyText + "<a href=www/" + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
+			bodyText = bodyText + "<a href=" + dir_path + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
 		else {
-			bodyText = bodyText + "<a href=www/" + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
+			bodyText = bodyText + "<a href=" + dir_path + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
 			flag = 1;
 		}
 	}
@@ -218,5 +217,5 @@ void	RequestHandler::autoIndex(int clientSocket) {
 	autoInd = autoInd + lengthContent + beforeBody + bodyText + afterBody;
 	closedir(dir);
 	send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
-	//autoindex test finished
+	return true;
 }
