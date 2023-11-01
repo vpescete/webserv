@@ -49,27 +49,34 @@ int	main(int ac, char *av[]) {
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(av[1]);
 
-	std::vector<Server *> svrs;
-	svrs = startServer(confFile.getMapConfig());
+	std::vector<Server *> srvs;
+	srvs = startServer(confFile.getMapConfig());
 	RequestHandler req;
 	char * bufferino = (char *)malloc(10000);
 
 	struct kevent events[MAXEVENTS];
 	ssize_t addrlen = sizeof(sockaddr);
+
 	while (running) {
 
 		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
 		for (int i = 0; i < numEvents; i++) {
-			int	index = getRightSocketFd(svrs, events[i].ident);
+			int	index = getRightSocketFd(srvs, events[i].ident);
 			if (index != -1) {
-				int clientSocket = accept(svrs[index]->getSocketFD(), (struct sockaddr *)(*svrs[index]).getServerAddress(), (socklen_t*)&addrlen);
+				int clientSocket = accept(srvs[index]->getSocketFD(), (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				if (int bufread = recv(clientSocket, bufferino, 10000, 0) < 0) {
 					break;
 				}
 				req.parsereq(bufferino);
-				req.setResponse(svrs[index], clientSocket);
+				//placeholder, if condition to change
+				if ((open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) || (req.getMethod() == "GET" && req.getPath() == "/www"))
+				{
+					req.autoIndex(clientSocket);
+					break;
+				}
+				req.setResponse(srvs[index], clientSocket);
 				// if (req.getPath() == "/") {
-				// 	std::ifstream file(svrs[index]->getIndex());
+				// 	std::ifstream file(srvs[index]->getIndex());
 				// 	if (file.is_open()) {
 				// 		std::stringstream buffer;
 				// 		buffer << file.rdbuf();
@@ -104,14 +111,15 @@ int	main(int ac, char *av[]) {
 				// 	}
 				// }
 				//std::cout << req.getPath()<< std::endl;
+
 				memset(bufferino, 0, 10000);
 				close(clientSocket);
 			}
 			else
-				std::cout << RED << getRightSocketFd(svrs, events[i].ident) << RESET << std::endl;
+				std::cout << RED << getRightSocketFd(srvs, events[i].ident) << RESET << std::endl;
 		}
 	}
-	disconnect(svrs);
+	disconnect(srvs);
 	close(kQueue);
 	return 0;
 }

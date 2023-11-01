@@ -37,6 +37,7 @@
 # include <stdlib.h>
 # include <signal.h>
 # include <stdlib.h>
+# include <dirent.h>
 
 
 // C++ Library
@@ -51,6 +52,7 @@
 # include <vector>
 # include <map>
 # include <algorithm>
+# include <sstream>
 
 
 // class

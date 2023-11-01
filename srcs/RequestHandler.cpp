@@ -48,6 +48,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	std::string value;
 	std::string temp2;
 	temp2 = buffer.substr(i + 1, buffer.length());
+	// std::cout << YELLOW << buffer << RESET << std::endl;
 	if (_method == "GET" || _method == "DELETE") {
 		while (end < temp2.size())
 		{
@@ -180,4 +181,42 @@ void	RequestHandler::setResponse(Server* svr, int clientSocket) {
 			send(clientSocket, response.c_str(), response.length(), 0);
 		}
 	}
+}
+
+void	RequestHandler::autoIndex(int clientSocket) {
+	//autoindex working only in www folder with links tocca learn how to make it work also with tmp folder
+	std::string autoInd = "HTTP/1.1 200 OK\nContent-Type:text/html\nContent-Length:"; //16\n\n";
+	std::string dir_path = "./www";
+	std::string beforeBody = "\n\n<html>\n<body>\n<h1>Autoindex</h1>\n<ul>\n";
+	std::string bodyText;
+	std::string afterBody;
+	std::string lengthContent;
+	int contentLength = beforeBody.length() - 2;
+	DIR* dir;
+	struct dirent *entry;
+	if ((dir = opendir(dir_path.c_str())) == NULL) {
+		perror("opendir");
+		return ;
+	}
+	int flag = 0;
+	while((entry = readdir(dir)) != NULL) {
+		if (flag != 0)
+		//now working cause i putt www hard-coded gotta understand that
+			bodyText = bodyText + "<a href=www/" + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
+		else {
+			bodyText = bodyText + "<a href=www/" + entry->d_name + ">" + "<br>" + entry->d_name + "</a>";
+			flag = 1;
+		}
+	}
+	std::stringstream ss;
+	afterBody = "</ul>\n</body>\n</html>\n";
+	contentLength += bodyText.length();
+	contentLength += afterBody.length() -1;
+	ss << contentLength;
+	ss >> lengthContent;
+	std::cout << BLUE << autoInd << RED << lengthContent << GREEN << beforeBody << CYAN << bodyText << YELLOW << afterBody << RESET << std::endl;
+	autoInd = autoInd + lengthContent + beforeBody + bodyText + afterBody;
+	closedir(dir);
+	send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
+	//autoindex test finished
 }
