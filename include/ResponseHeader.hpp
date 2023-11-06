@@ -9,7 +9,7 @@ class RequestHeader;
 class ResponseHeader
 {
 	private:
-		Server	*_server;
+		Server	*server;
 		RequestHeader	*_request;
 		Configuration	*_config;
 		std::map<int, std::string>	_statusCodeMap;
