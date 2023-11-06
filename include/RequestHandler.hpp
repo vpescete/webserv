@@ -18,6 +18,7 @@ class RequestHandler {
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
+		std::string getCookies(const std::string& name);
 };
 
 #endif

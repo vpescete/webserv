@@ -1,5 +1,22 @@
 #include "../include/RequestHandler.hpp"
 
+std::string trim(const std::string& str)
+{
+    std::string::const_iterator it = str.begin();
+    while (it != str.end() && std::isspace(*it))
+    {
+        it++;
+    }
+
+    std::string::const_reverse_iterator rit = str.rbegin();
+    while (rit.base() != it && std::isspace(*rit))
+    {
+        rit++;
+    }
+
+    return std::string(it, rit.base());
+}
+
 RequestHandler::RequestHandler(){}
 
 RequestHandler::~RequestHandler(){}
@@ -95,7 +112,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 			std::string bodyStart = headerEnd + 4;
 			if (bodyStart.length() > 0) {
 					// std::cout << RED << "Body:\n" << bodyStart << RESET << std::endl;
-				while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
+				while(bodyStart[j] != '\n' && bodyStart[j] != '\0')
 					j++;
 				_bodyStart = bodyStart.substr(0, j);
 				end = 0;
@@ -130,6 +147,28 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	}
 	temp = NULL;
 	free(temp);
+}
+
+
+std::string RequestHandler::getCookies(const std::string& name)
+{
+	if (_mapHeader.find("Cookie") != _mapHeader.end())
+	{
+		std::string cookies = _mapHeader["Cookie"];
+		std::stringstream ss(cookies);
+		std::string token;
+
+		while (std::getline(ss, token, ';'))
+		{
+			token = trim(token);
+			size_t pos = token.find('=');
+			if (pos != std::string::npos && token.substr(0, pos) == name)
+			{
+				return token.substr(pos + 1);
+			}
+		}
+	}
+	return "";
 }
 
 std::string RequestHandler::getMethod() {
