@@ -4,6 +4,86 @@ RequestHandler::RequestHandler(){}
 
 RequestHandler::~RequestHandler(){}
 
+std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value) {
+	while (end < temp2.size())
+		{
+			start = temp2.find(':', 0);
+			end = temp2.find('\n', 0);
+			if(end != std::string::npos) {
+				key = temp2.substr(0, start);
+				value = temp2.substr(start + 1, end - start - 2);
+				removeWhitespace(key);
+				removeWhitespace(value);
+				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+			}
+			temp2 = temp2.substr(end + 1);
+		}
+	return temp2;
+}
+
+void RequestHandler::postMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value, const char* headerEnd){
+	int k = 0;
+	while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
+		headerEnd++;
+	if (headerEnd != NULL) {
+		// Parse and print the headers
+		// std::cout << headerEnd << std::endl;
+		while (end < temp2.size())
+		{
+			start = temp2.find(':', 0);
+			end = temp2.find('\n', 0);
+			if(end != std::string::npos) {
+				key = temp2.substr(0, start);
+				value = temp2.substr(start + 1, end - start - 1);
+				removeWhitespace(key);
+				removeWhitespace(value);
+				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+			}
+			temp2 = temp2.substr(end + 1);
+		}
+		if (headerEnd[0] == '-') {
+			uploadNoImage(start, end, key, value, headerEnd);
+		}
+		else
+			_bodyEnd = headerEnd;
+	}
+}
+
+void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
+	int j = 0;
+	std::string bodyStart = headerEnd + 4;
+	if (bodyStart.length() > 0) {
+		while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
+			j++;
+		_bodyStart = bodyStart.substr(0, j);
+		end = 0;
+		bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
+		while (end < bodyStart.size())
+		{
+			start = bodyStart.find(':', 0);
+			end = bodyStart.find('\n', 0);
+			if (bodyStart[0] == '\r')
+				break;
+			if(end != std::string::npos) {
+				key = bodyStart.substr(0, start);
+				value = bodyStart.substr(start + 2, end - start - 2);
+				removeWhitespace(key);
+				removeWhitespace(value);
+				_mapBody.insert(std::pair<std::string, std::string>(key, value));
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+			}
+			bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
+		}
+	j = 0;
+	while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
+		j++;
+	bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
+	_bodyEnd = bodyStart;
+	}
+}
+
 void   	RequestHandler::parsereq(std::string buffer) {
 	int	i = 0, j = 0;
 	char*	temp;
@@ -42,7 +122,7 @@ void   	RequestHandler::parsereq(std::string buffer) {
 		j = 0;
 	}
 	// second parser of the request to put all handler in a map
-	std::string::size_type start;
+	std::string::size_type start = 0;
 	std::string::size_type end = 0;
 	std::string key;
 	std::string value;
@@ -50,84 +130,13 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	temp2 = buffer.substr(i + 1, buffer.length());
 	// std::cout << YELLOW << buffer << RESET << std::endl;
 	if (_method == "GET" || _method == "DELETE") {
-		while (end < temp2.size())
-		{
-			start = temp2.find(':', 0);
-			end = temp2.find('\n', 0);
-			if(end != std::string::npos) {
-				key = temp2.substr(0, start);
-				value = temp2.substr(start + 1, end - start - 2);
-				removeWhitespace(key);
-				removeWhitespace(value);
-				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-			}
-			temp2 = temp2.substr(end + 1);
-		}
+		get_deleteMethod(start,end, temp2, key, value);
 	}
 	else if (_method == "POST")
 	{
 		const char* headerEnd = strstr(buffer.c_str(), "\r\n\r\n");
 		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
-		// std::cout << BLUE << buffer << RESET << std::endl;
-		int k = 0;
-		while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
-			headerEnd++;
-		if (headerEnd != NULL) {
-			// Parse and print the headers
-			// std::cout << headerEnd << std::endl;
-			while (end < temp2.size())
-			{
-				start = temp2.find(':', 0);
-				end = temp2.find('\n', 0);
-				if(end != std::string::npos) {
-					key = temp2.substr(0, start);
-					value = temp2.substr(start + 1, end - start - 1);
-					removeWhitespace(key);
-					removeWhitespace(value);
-					_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-					// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-				}
-				temp2 = temp2.substr(end + 1);
-			}
-			if (headerEnd[0] == '-') {
-			// std::cout << YELLOW << "Headers:\n" << buffer << RESET << std::endl;
-			// Extract the body (if the call is upload without images)
-			std::string bodyStart = headerEnd + 4;
-			if (bodyStart.length() > 0) {
-					// std::cout << RED << "Body:\n" << bodyStart << RESET << std::endl;
-				while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
-					j++;
-				_bodyStart = bodyStart.substr(0, j);
-				end = 0;
-				bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
-				while (end < bodyStart.size())
-				{
-					start = bodyStart.find(':', 0);
-					end = bodyStart.find('\n', 0);
-					if (bodyStart[0] == '\r')
-						break;
-					if(end != std::string::npos) {
-						key = bodyStart.substr(0, start);
-						value = bodyStart.substr(start + 2, end - start - 2);
-						removeWhitespace(key);
-						removeWhitespace(value);
-						_mapBody.insert(std::pair<std::string, std::string>(key, value));
-						// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-					}
-					bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
-				}
-				j = 0;
-				while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
-					j++;
-				bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
-				_bodyEnd = bodyStart;
-				}
-			}
-			// Extract the body (if the call is anything else)
-			else
-				_bodyEnd = headerEnd;
-		}
+		postMethod(start, end, temp2, key, value, headerEnd);
 	}
 	temp = NULL;
 	free(temp);

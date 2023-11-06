@@ -24,6 +24,9 @@ class RequestHandler {
 		std::string getProtocol();
 		void setResponse(Server* svr, int clientSocket);
 		bool autoIndex(int clientSocket);
+		std::string get_deleteMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value);
+		void postMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value, const char* headerEnd);
+		void uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd);
 };
 
 #endif
