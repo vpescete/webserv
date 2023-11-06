@@ -7,6 +7,41 @@ ResponseHeader::ResponseHeader(Server *_server, RequestHeader *_request, Configu
 	setDefaultHeaders();
 }
 
+std::string ResponseHeader::makeResponse() const
+{
+	std::string response("HTTP/1.1 ");
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it->first != _headers.at("Date"); ++it)
+	{
+		response.append(it->first);
+		response.append(": ");
+		response.append(it->second);
+		response.append("\r\n");
+	}
+
+	return response;
+}
+
+std::string ResponseHeader::getResponseCode(int code) const
+{
+	if (_statusCodeMap.find(code) != _statusCodeMap.end())
+		return _statusCodeMap.find(code)->second;
+	return _statusCodeMap.find(500)->second;
+}
+
+std::string ResponseHeader::getDate() const
+{
+	time_t rawtime;
+	struct tm *timeinfo;
+	char buffer[80];
+
+	time(&rawtime);
+	timeinfo = localtime(&rawtime);
+	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S %Z", timeinfo);
+	std::string str(buffer);
+
+	return str;
+}
+
 void ResponseHeader::setStatusCodeMap()
 {
 	_statusCodeMap[200] = "OK";
@@ -32,25 +67,9 @@ void ResponseHeader::setDefaultHeaders()
 	setConnection("keep-alive");
 }
 
-std::string ResponseHeader::makeResponse(int code) const
+void ResponseHeader::setServer()
 {
-	std::string response("HTTP/1.1 ");
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it->first != _headers.at("Date"); ++it)
-	{
-		response.append(it->first);
-		response.append(": ");
-		response.append(it->second);
-		response.append("\r\n");
-	}
-
-	return response;
-}
-
-std::string ResponseHeader::getResponseCode(int code) const
-{
-	if (_statusCodeMap.find(code) != _statusCodeMap.end())
-		return _statusCodeMap.find(code)->second;
-	return _statusCodeMap.find(500)->second;
+	_headers["Server"] = _server->getHost();
 }
 
 void ResponseHeader::setStatusCode(const std::string& code)
@@ -83,11 +102,6 @@ void ResponseHeader::setContentType(const std::string& content_type)
 void ResponseHeader::setDate(const std::string& date)
 {
 	_headers["Date"] = date;
-}
-
-void ResponseHeader::setServer(const std::string& date)
-{
-	_headers["Server"] = _server->getHost();
 }
 
 //response.set_connection("keep-alive");  Enable persistent connections
