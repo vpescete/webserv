@@ -9,9 +9,9 @@ class RequestHeader;
 class ResponseHeader
 {
 	private:
-		Server	*server;
-		RequestHeader	*request;
-		Configuration	*config;
+		Server	*_server;
+		RequestHeader	*_request;
+		Configuration	*_config;
 		std::map<int, std::string>	_statusCodeMap;
 		std::map<std::string, std::string>	_headers;
 		void setDefaultHeaders();
@@ -26,7 +26,7 @@ class ResponseHeader
 		void setConnection(const std::string& connection);
 
 	public:
-		ResponseHeader(Server *server, RequestHeader *request, Configuration *config);
+		ResponseHeader(Server *_server, RequestHeader *_request, Configuration *_config);
 		~ResponseHeader();
 		std::string makeResponse(int code) const;
 		std::string getResponseCode(int code) const;

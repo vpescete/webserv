@@ -1,7 +1,7 @@
 #include "ResponseHeader.hpp"
 
-ResponseHeader::ResponseHeader(Server *server, RequestHeader *request, Configuration *config)
-	: server(server), request(request), config(config)
+ResponseHeader::ResponseHeader(Server *_server, RequestHeader *_request, Configuration *_config)
+	: _server(_server), _request(_request), _config(_config)
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
@@ -28,14 +28,14 @@ void ResponseHeader::setDefaultHeaders()
 	setContentType("text/html");
 	setContentLenght("0");
 	setDate(getDate());
-	_headers["Server"] = server->getHost(); //è il nome del Server?
+	_headers["Server"] = _server->getHost(); //è il nome del Server?
 	setConnection("keep-alive");
 }
 
 std::string ResponseHeader::makeResponse(int code) const
 {
 	std::string response("HTTP/1.1 ");
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it != _headers.at(); ++it)
+	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it->first != _headers.at("Date"); ++it)
 	{
 		response.append(it->first);
 		response.append(": ");
@@ -87,7 +87,7 @@ void ResponseHeader::setDate(const std::string& date)
 
 void ResponseHeader::setServer(const std::string& date)
 {
-	_headers["Server"] = server->getHost();
+	_headers["Server"] = _server->getHost();
 }
 
 //response.set_connection("keep-alive");  Enable persistent connections
