@@ -17,6 +17,7 @@ static void signal_handler(int i) {
 	if (i == SIGINT)
 		running = 0;
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
+	exit(0);
 }
 
 void	disconnect(std::vector<Server *> srvs) {
