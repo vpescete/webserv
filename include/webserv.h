@@ -59,5 +59,6 @@
 # include "Configuration.hpp"
 # include "LocationPath.hpp"
 # include "RequestHandler.hpp"
+# include "ResponseHeader.hpp"
 
 #endif

@@ -1,6 +1,6 @@
 #include "ResponseHeader.hpp"
 
-ResponseHeader::ResponseHeader(Server *_server, RequestHeader *_request, Configuration *_config)
+ResponseHeader::ResponseHeader(Server *_server, RequestHandler *_request, Configuration *_config)
 	: _server(_server), _request(_request), _config(_config)
 {
 	setStatusCodeMap();
@@ -21,6 +21,7 @@ std::string ResponseHeader::makeResponse() const
 	return response;
 }
 
+#pragma region GET
 std::string ResponseHeader::getResponseCode(int code) const
 {
 	if (_statusCodeMap.find(code) != _statusCodeMap.end())
@@ -42,6 +43,40 @@ std::string ResponseHeader::getDate() const
 	return str;
 }
 
+LocationPath ResponseHeader::getLocationPath(std::string path)
+{
+	std::map<std::string, LocationPath> locationPaths = _config->getLocationPath();
+	for (std::map<std::string, LocationPath>::iterator it = locationPaths.begin(); it != locationPaths.end(); ++it)
+	{
+		if (path.find(it->first) != std::string::npos)
+			return it->second;
+	}
+}
+#pragma endregion region for get method
+
+#pragma region Creation
+void ResponseHeader::pathCreation()
+{
+	std::string path = _request->getPath();
+	LocationPath locationPath = getLocationPath(path);
+	setPath(path);
+}
+
+void ResponseHeader::contentCreation()
+{
+	//std::string = _request->getContent();
+	//setContent(_content);
+}
+
+void ResponseHeader::contentTypeCreation(std::string path, std::string type)
+{
+	(void)path;
+	(void)type;
+	//std::string = _request->getContentType();
+}
+#pragma endregion region for creation
+
+#pragma region SET
 void ResponseHeader::setStatusCodeMap()
 {
 	_statusCodeMap[200] = "OK";
@@ -83,6 +118,11 @@ void ResponseHeader::setCookies(const std::string& name, const std::string& valu
 	_headers["Set-Cookie"] = cookie;
 }
 
+void ResponseHeader::setPath(const std::string& path)
+{
+	_headers["Path"] = path;
+}
+
 void ResponseHeader::setContent(const std::string& content)
 {
 	_headers["Content"] = content;
@@ -110,5 +150,6 @@ void ResponseHeader::setConnection(const std::string& connection)
 {
 	_headers["Connection"] = connection;
 }
+#pragma endregion region for set method
 
 
