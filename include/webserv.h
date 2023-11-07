@@ -57,5 +57,6 @@
 # include "Server.hpp"
 # include "Configuration.hpp"
 # include "LocationPath.hpp"
+# include "Client.hpp"
 
 #endif
