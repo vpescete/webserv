@@ -1,13 +1,13 @@
-#include "ResponseHeader.hpp"
+#include "ResponseHandler.hpp"
 
-ResponseHeader::ResponseHeader(Server *_server, RequestHandler *_request, Configuration *_config)
+ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, Configuration *_config)
 	: _server(_server), _request(_request), _config(_config)
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
 }
 
-std::string ResponseHeader::makeResponse() const
+std::string ResponseHandler::makeResponse() const
 {
 	std::string response("HTTP/1.1 ");
 	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it->first != _headers.at("Date"); ++it)
@@ -17,19 +17,19 @@ std::string ResponseHeader::makeResponse() const
 		response.append(it->second);
 		response.append("\r\n");
 	}
-
+	response.append(getDate());
 	return response;
 }
 
 #pragma region GET
-std::string ResponseHeader::getResponseCode(int code) const
+std::string ResponseHandler::getResponseCode(int code) const
 {
 	if (_statusCodeMap.find(code) != _statusCodeMap.end())
 		return _statusCodeMap.find(code)->second;
 	return _statusCodeMap.find(500)->second;
 }
 
-std::string ResponseHeader::getDate() const
+std::string ResponseHandler::getDate() const
 {
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -43,7 +43,7 @@ std::string ResponseHeader::getDate() const
 	return str;
 }
 
-LocationPath ResponseHeader::getLocationPath(std::string path)
+LocationPath ResponseHandler::getLocationPath(std::string path)
 {
 	std::map<std::string, LocationPath> locationPaths = _config->getLocationPath();
 	for (std::map<std::string, LocationPath>::iterator it = locationPaths.begin(); it != locationPaths.end(); ++it)
@@ -55,29 +55,26 @@ LocationPath ResponseHeader::getLocationPath(std::string path)
 #pragma endregion region for get method
 
 #pragma region Creation
-void ResponseHeader::pathCreation()
+void ResponseHandler::setPath()
 {
 	std::string path = _request->getPath();
 	LocationPath locationPath = getLocationPath(path);
-	setPath(path);
 }
 
-void ResponseHeader::contentCreation()
+void ResponseHandler::setContent()
 {
 	//std::string = _request->getContent();
-	//setContent(_content);
 }
 
-void ResponseHeader::contentTypeCreation(std::string path, std::string type)
+void ResponseHandler::setContentType(std::string path, std::string type)
 {
 	(void)path;
 	(void)type;
-	//std::string = _request->getContentType();
 }
 #pragma endregion region for creation
 
 #pragma region SET
-void ResponseHeader::setStatusCodeMap()
+void ResponseHandler::setStatusCodeMap()
 {
 	_statusCodeMap[200] = "OK";
 	_statusCodeMap[201] = "Created";
@@ -92,61 +89,46 @@ void ResponseHeader::setStatusCodeMap()
 	_statusCodeMap[503] = "Service Unavailable";
 }
 
-void ResponseHeader::setDefaultHeaders()
+void ResponseHandler::setDefaultHeaders()
 {
 	setStatusCode("0");
-	setContentType("text/html");
+	_headers["Path"] = "";
+	_headers["Content"] = "";
+	_headers["Content-Type"] = "text/html";
 	setContentLenght("0");
-	setDate(getDate());
-	_headers["Server"] = _server->getHost(); //è il nome del Server?
 	setConnection("keep-alive");
 }
 
-void ResponseHeader::setServer()
+void ResponseHandler::setServer()
 {
 	_headers["Server"] = _server->getHost();
 }
 
-void ResponseHeader::setStatusCode(const std::string& code)
+void ResponseHandler::setStatusCode(const std::string& code)
 {
 	_headers["Status"] = code + " " + getResponseCode(std::atoi(code.c_str()));
 }
 
-void ResponseHeader::setCookies(const std::string& name, const std::string& value)
+void ResponseHandler::setCookies(const std::string& name, const std::string& value)
 {
 	std::string cookie = name + "=" + value;
 	_headers["Set-Cookie"] = cookie;
 }
 
-void ResponseHeader::setPath(const std::string& path)
-{
-	_headers["Path"] = path;
-}
-
-void ResponseHeader::setContent(const std::string& content)
-{
-	_headers["Content"] = content;
-	_headers["Content-Length"] = std::to_string(content.length());
-}
-
-void ResponseHeader::setContentLenght(const std::string& content)
+void ResponseHandler::setContentLenght(const std::string& content)
 {
 	_headers["Content-Length"] = content;
 }
 
-void ResponseHeader::setContentType(const std::string& content_type)
-{
-	_headers["Content-Type"] = content_type;
-}
 
-void ResponseHeader::setDate(const std::string& date)
+void ResponseHandler::setDate(const std::string& date)
 {
 	_headers["Date"] = date;
 }
 
 //response.set_connection("keep-alive");  Enable persistent connections
 //response.set_connection("close");  Disable persistent connections
-void ResponseHeader::setConnection(const std::string& connection)
+void ResponseHandler::setConnection(const std::string& connection)
 {
 	_headers["Connection"] = connection;
 }
