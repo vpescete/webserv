@@ -15,7 +15,7 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}

@@ -39,7 +39,7 @@ class Server {
 		void		serverConnection(int kQueue);
 		void		serverDisconnection();
 		Configuration	*getConf();
-		struct kevent	getKevent();
+		struct kevent*	getKevent();
 		std::string		getIndex();
 		std::map<std::string, LocationPath> getLocationPathMap();
 };
