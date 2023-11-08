@@ -66,13 +66,19 @@ std::string ResponseHandler::getDate() const
 
 LocationPath ResponseHandler::getLocationPath(std::string path)
 {
-	std::map<std::string, LocationPath> locationPaths = _server->getConf().getLocationPath();
+	std::map<std::string, LocationPath> locationPaths = _config->getLocationPath();
 	for (std::map<std::string, LocationPath>::iterator it = locationPaths.begin(); it != locationPaths.end(); ++it)
 	{
-		if (path.find(it->first) != std::string::npos)
+		if (path.find(it->first, 0) == 0)
 			return it->second;
 	}
-	return LocationPath();
+	std::map<std::string, LocationPath> secondTry = _server->getConf().getLocationPath();
+	if (secondTry.find("/") != secondTry.end())
+	{
+		return LocationPath();
+	}
+	return secondTry.find("/")->second;
+
 }
 
 std::string ResponseHandler::getCurrentPath() const {
@@ -107,6 +113,12 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	std::string method = _request->extractPath(requestPath);
 	LocationPath path = getLocationPath(requestPath);
 
+	// Controlla se è stato trovato un path
+	if (path.getLocationPath().empty()) {
+		setStatusCode("404");
+		_path = _config->getErrorPath(getResponseCode(404));
+		return;
+	}
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
@@ -150,13 +162,103 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 
 void ResponseHandler::setContent()
 {
-	//std::string = _request->getContent();
+	std::ifstream file;
+	file.open(_path, std::ios::in);
+	struct stat s;
+	std::string _content;
+
+
+	if (stat(_path.c_str(), &s) == -1) // file doesn't exist
+	{
+		file.close();
+		setStatusCode("404");
+		return ;
+	}
+	if (file.is_open() && !(s.st_mode & S_IFDIR)) // check if file is open or is a directory
+	{
+		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
+		std::string type; // extension of the response file
+
+		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
+			_path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
+		else type = "";
+		if (_request && _request->getMethod() == "DELETE")
+		{
+			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
+				_content = "\r\n<h1>File deleted successfully</h1>";
+			else
+				_content = "\r\n<h1>Unable to delete the file</h1>";
+			std::stringstream ss;
+			ss << (_content.size() - 2);
+			setContentLenght(ss.str());
+		}
+		else if (type == "py" || type == "php") // file has to go through cgi
+		{
+			; // no clue about how the cgi works
+		}
+		else // file is probably an html
+		{
+			int fileLen;
+			std::string tmp = std::string("\r\n");
+
+			file.seekg(0, std::ios::end); // move the file iter to the end of the file
+			fileLen = file.tellg();
+			if (fileLen != -1)
+				_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
+			else
+			{
+				file.close();
+				setStatusCode("500");
+				return ;
+			}
+			file.seekg(0, std::ios::beg); // go back to the start of the file
+			std::stringstream buffer;
+    		buffer << file.rdbuf(); // read the entire file through stringstream
+			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
+			_content = tmp.append(_content, 0, _content.size());
+			std::stringstream ss;
+			ss << (_content.size() - 2);
+			setContentLenght(ss.str());
+		}
+	}
+	else
+	{
+		file.close();
+		setStatusCode("404");
+		return ;
+	}
+	file.close();
 }
 
 void ResponseHandler::setContentType(std::string path, std::string type)
 {
-	(void)path;
-	(void)type;
+	std::string _contentType;
+
+	if (type != "")
+	{
+		_contentType = type;
+		return ;
+	}
+	size_t dotPos = path.rfind(".");
+	if (dotPos != std::string::npos)
+		type = path.substr(dotPos + 1, path.size() - dotPos); // get the end of the path from "."
+	else
+		type = "";
+	// pretty self-explicatory from this point onwards
+	if ((type == "html") || _request->getMethod() == "DELETE") // maybe cgi???
+		_contentType = "text/html";
+	else if (type == "css")
+		_contentType = "text/css";
+	else if (type == "js")
+		_contentType = "text/javascript";
+	else if (type == "jpeg" || type == "jpg")
+		_contentType = "image/jpeg";
+	else if (type == "png")
+		_contentType = "image/png";
+	else if (type == "bmp")
+		_contentType = "image/bmp";
+	else
+		_contentType = "text/plain";
 }
 
 void ResponseHandler::setStatusCodeMap()

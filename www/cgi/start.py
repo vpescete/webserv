@@ -2,6 +2,15 @@ import os
 import subprocess
 import sys
 
+# OLD NON USARE SE SI RIESCE
+
+
+
+
+
+
+
+
 # Parse the incoming HTTP request
 request = sys.stdin.read()
 method, path, query = request.split(' ', 2)
