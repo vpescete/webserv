@@ -57,7 +57,6 @@ int	main(int ac, char *av[]) {
 	Clients client;
 	struct kevent events[MAXEVENTS];
 	ssize_t addrlen = sizeof(sockaddr);
-	int clientSocket = 0;
 	int connect;
 
 	while (running) {
@@ -96,7 +95,7 @@ int	main(int ac, char *av[]) {
 				req.parsereq(bufferStr);
 				std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
-				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
+				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
 					if (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
 						req.autoIndex(events[i].ident);
 					}

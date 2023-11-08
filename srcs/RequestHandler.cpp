@@ -15,7 +15,7 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
@@ -87,6 +87,7 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 void	RequestHandler::parsereq(std::string buffer) {
 	unsigned long i = 0;
 	std::string temp;
+	std::cout << RED << buffer << RESET << std::endl;
 	while (buffer[i] != '\n' && i < buffer.length()) {
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
@@ -95,7 +96,6 @@ void	RequestHandler::parsereq(std::string buffer) {
 		_method = temp;
 		temp.clear();
 		i++;
-
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
 			i++;
@@ -103,14 +103,12 @@ void	RequestHandler::parsereq(std::string buffer) {
 		_path = temp;
 		temp.clear();
 		i++;
-
 		while (buffer[i] != '\n' && i < buffer.length()) {
 			temp += buffer[i];
 			i++;
 		}
 		_protocol = temp;
 		temp.clear();
-		i++;
 	}
 	// second parser of the request to put all handler in a map
 	std::string::size_type start = 0;
@@ -122,8 +120,10 @@ void	RequestHandler::parsereq(std::string buffer) {
 	// std::cout << RED << "[DEBUG METHOD]" << buffer.substr(0, i) << RESET << std::endl;
 	if (i + 1 < buffer.length())
 		temp2 = buffer.substr(i + 1, buffer.length());
-	else
+	else {
 		temp2 = "";
+		return ;
+	}
 	// std::cout << YELLOW << buffer << RESET << std::endl;
 	if (_method == "GET" || _method == "DELETE") {
 		get_deleteMethod(start,end, temp2, key, value);
@@ -151,6 +151,7 @@ std::string RequestHandler::getProtocol() {
 }
 
 void	RequestHandler::setResponse(Server* svr, int clientSocket) {
+	std::cout << BLUE << _method << "  " << _path << "  " << _protocol << RESET << std::endl;
 	if (_path == "/") {
 		std::ifstream file(svr->getIndex());
 		if (file.is_open()) {
