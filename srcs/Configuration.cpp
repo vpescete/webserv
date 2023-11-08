@@ -71,7 +71,6 @@ void Configuration::_setMapLocation() {
 		end = stringPath.find('}', 0);
 		last = stringPath.find('/', last);
 		key = stringPath.substr(last, stringPath.find('\n', last) - last);
-		// std::cout << YELLOW << stringPath << RESET << std::endl;
 		_mapLocationPath.insert(std::pair<std::string, LocationPath>(key,
 			LocationPath(stringPath.substr(start, end - start + 1), key)));
 		stringPath = stringPath.substr(end + 1);
@@ -81,7 +80,6 @@ void Configuration::_setMapLocation() {
 
 std::string Configuration::getHost() {
 	try {
-		// std::cout << _map.at("host") << std::endl;
 		return _map.at("host");
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Host not found in the configuration file" << RESET << std::endl;
@@ -91,7 +89,6 @@ std::string Configuration::getHost() {
 
 u_int16_t Configuration::getPort() {
 	try {
-		// std::cout << _map.at("port") << std::endl;
 		return (u_int16_t)std::atoi(_map.at("port").c_str());
 	} catch (const std::exception & e) {
 		std::cerr << RED << "Port not found in the configuration file" << RESET << std::endl;
@@ -102,7 +99,6 @@ u_int16_t Configuration::getPort() {
 std::string Configuration::getHostPort() {
 	std::string	hostPort;
 	hostPort.append(_map["host"]).append(":").append(_map["port"]);
-	// std::cout << CYAN << hostPort << RESET << std::endl;
 	return hostPort;
 }
 

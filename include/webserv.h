@@ -13,7 +13,7 @@
 // MACRO
 # define DEFAULT_PATH "conf/server.conf"
 # define DEFAULT_ERROR_PAGE "errors/500.html"
-# define MAXEVENTS 10
+# define MAXEVENTS 1024
 
 // ERROR PAGES MACRO
 # define E_400 "error_page_400"
@@ -37,7 +37,8 @@
 # include <stdlib.h>
 # include <signal.h>
 # include <stdlib.h>
-
+# include <dirent.h>
+# include <assert.h>
 
 // C++ Library
 # include <iostream>
@@ -51,6 +52,8 @@
 # include <vector>
 # include <map>
 # include <algorithm>
+# include <sstream>
+
 
 // class
 # include "ParserConf.hpp"
@@ -58,6 +61,7 @@
 # include "Configuration.hpp"
 # include "LocationPath.hpp"
 # include "RequestHandler.hpp"
+# include "Clients.hpp"
 # include "ResponseHandler.hpp"
 
 #endif

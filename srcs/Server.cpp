@@ -9,7 +9,12 @@ Server::Server(Configuration &config) : _conf(&config) {
 Server::~Server() {
 }
 
-#pragma region GET
+Server Server::operator=(Server &rhs) {
+	if (this->_host != rhs._host)
+		*this = rhs;
+	return *this;
+}
+
 u_int16_t Server::getPort() {
 
 	return this->_port;
@@ -57,8 +62,6 @@ void Server::serverConnection(int kQueue) {
 	int opt = 1;
 
 	// options to let socket reutilize the same port
-	// setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(int));
-	// setsockopt(_socketFD, SOL_SOCKET, SO_NOSIGPIPE , &opt, sizeof(int));
 	if (setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR , &opt, sizeof(opt))) {
 		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
 		exit(EXIT_FAILURE);
@@ -67,6 +70,7 @@ void Server::serverConnection(int kQueue) {
 		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	fcntl(_socketFD, F_SETFL, O_NONBLOCK);
 	_serverAddress.sin_port = htons(_port);
 	if (bind(_socketFD, (struct sockaddr*)&_serverAddress, sizeof(_serverAddress)) < 0) {
 		std::cout << RED << "Error: Fail to bind port " << getPort() << RESET << std::endl;
@@ -85,10 +89,23 @@ void Server::serverConnection(int kQueue) {
 	// possono essere utilizzati per gestire le operazioni di I/O in modo asincrono ed efficiente, il che è fondamentale per server web ad alte prestazioni.
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
+	_setLocationPathMap();
 }
 
 void Server::serverDisconnection() {
 	close(_socketFD);
+}
+
+Configuration *Server::getConf2() {
+	return _conf;
+}
+
+struct kevent* Server::getKevent() {
+	return &_kevent;
+}
+
+std::string Server::getIndex() {
+	return _locationPathMap.at("/").getIndex();
 }
 
 void Server::_setPort() {
@@ -99,3 +116,10 @@ void Server::_setHost() {
 	_host = _conf->getHost();
 }
 
+void Server::_setLocationPathMap() {
+	_locationPathMap = getConf().getLocationPath();
+}
+
+std::map<std::string, LocationPath> Server::getLocationPathMap() {
+	return _locationPathMap;
+}
