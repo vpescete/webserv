@@ -90,6 +90,7 @@ void Server::serverConnection(int kQueue) {
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
 	_setLocationPathMap();
+	_setMap();
 }
 
 void Server::serverDisconnection() {
@@ -120,6 +121,18 @@ void Server::_setLocationPathMap() {
 	_locationPathMap = getConf().getLocationPath();
 }
 
+void Server::_setMap() {
+	_map = getConf().getMap();
+}
+
 std::map<std::string, LocationPath> Server::getLocationPathMap() {
 	return _locationPathMap;
+}
+
+std::string Server::getErrorPath(std::string errorCode) {
+	try {
+		return _map[errorCode];
+	} catch (std::exception & e) {
+		return DEFAULT_ERROR_PAGE;
+	}
 }

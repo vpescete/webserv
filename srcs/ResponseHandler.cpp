@@ -1,7 +1,7 @@
 #include "ResponseHandler.hpp"
 
-ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, Configuration *_config)
-	: _server(_server), _request(_request), _config(_config)
+ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request)
+	: _server(_server), _request(_request)
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
@@ -66,13 +66,13 @@ std::string ResponseHandler::getDate() const
 
 LocationPath ResponseHandler::getLocationPath(std::string path)
 {
-	std::map<std::string, LocationPath> locationPaths = _config->getLocationPath();
+	std::map<std::string, LocationPath> locationPaths = _server->getLocationPathMap();
 	for (std::map<std::string, LocationPath>::iterator it = locationPaths.begin(); it != locationPaths.end(); ++it)
 	{
 		if (path.find(it->first, 0) == 0)
 			return it->second;
 	}
-	std::map<std::string, LocationPath> secondTry = _server->getConf().getLocationPath();
+	std::map<std::string, LocationPath> secondTry = _server->getLocationPathMap();
 	if (secondTry.find("/") != secondTry.end())
 	{
 		return LocationPath();
@@ -116,25 +116,28 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	// Controlla se è stato trovato un path
 	if (path.getLocationPath().empty()) {
 		setStatusCode("404");
-		_path = _config->getErrorPath(getResponseCode(404));
+		_path = _server->getErrorPath(getResponseCode(404));
 		return;
 	}
+
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
-		_path = _config->getErrorPath(getResponseCode(405));
+		_path = _server->getErrorPath(getResponseCode(405));
 		return;
 	}
+
 	// Modifica il percorso in base alla rotta corrispondente
 	std::string responsePath = getModifyPath(requestPath, path);
+
 
 	// Controlla se il percorso modificato corrisponde a una nuova rotta
 	LocationPath newRoute = getLocationPath(_path);
 	if (newRoute.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
-		_path = _config->getErrorPath(getResponseCode(405));
+		_path = _server->getErrorPath(getResponseCode(405));
 		return;
 	}
 

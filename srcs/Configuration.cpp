@@ -110,6 +110,11 @@ std::string Configuration::getServerName() {
 	return _map["server_name"];
 }
 
+std::map<std::string, std::string> Configuration::getMap()
+{
+	return _map;
+}
+
 std::string Configuration::getErrorPath(std::string errorCode) {
 	try {
 		return _map[errorCode];

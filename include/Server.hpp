@@ -13,11 +13,13 @@ class Server {
 		std::string		_host;
 		int				_socketFD;
 		Configuration	*_conf;
+		std::map<std::string, std::string> _map;
 		std::map<std::string, LocationPath> _locationPathMap;
 
 		// setter member
 		void	_setPort();
 		void	_setHost();
+		void	_setMap();
 		void	_setLocationPathMap();
 
 		// socket
@@ -43,6 +45,7 @@ class Server {
 		struct kevent*	getKevent();
 		std::string		getIndex();
 		std::map<std::string, LocationPath> getLocationPathMap();
+		std::string getErrorPath(std::string errorCode);
 };
 
 #endif

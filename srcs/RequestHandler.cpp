@@ -110,7 +110,7 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 void	RequestHandler::parsereq(std::string buffer) {
 	unsigned long i = 0;
 	std::string temp;
-	std::cout << RED << buffer << RESET << std::endl;
+	//std::cout << RED << buffer << RESET << std::endl;
 	while (buffer[i] != '\n' && i < buffer.length()) {
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
@@ -171,7 +171,8 @@ std::string RequestHandler::getProtocol() {
 
 
 void	RequestHandler::setResponse(Server* svr, int clientSocket) {
-	std::cout << BLUE << _method << "  " << _path << "  " << _protocol << RESET << std::endl;
+	//std::cout << BLUE << _method << "  " << _path << "  " << _protocol << RESET << std::endl;
+	ResponseHandler res = ResponseHandler(svr, this);
 	if (_path == "/") {
 		std::ifstream file(svr->getIndex());
 		if (file.is_open()) {

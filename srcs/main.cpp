@@ -84,12 +84,11 @@ int	main(int ac, char *av[]) {
 					usleep(100);
 				} while (bytesRead > 0);
 				req.parsereq(bufferStr);
-				std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
+				//std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
 				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
-					std::cout << "cacca" << std::endl;
 					if (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
-						std::cout << (*srvs[index]).getIndex() << std::endl;
+						//std::cout << (*srvs[index]).getIndex() << std::endl;
 						req.autoIndex(events[i].ident);
 						req.setResponse(srvs[index], events[i].ident);
 					}
@@ -97,7 +96,6 @@ int	main(int ac, char *av[]) {
 					close(events[i].ident);
 					break;
 				}
-				std::cout << "cacca2" << std::endl;
 				req.setResponse(srvs[index], events[i].ident);
 				client.closeClientConnection(events[i].ident);
 				close(events[i].ident);

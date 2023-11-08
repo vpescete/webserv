@@ -11,7 +11,6 @@ class ResponseHandler
 	private:
 		Server	*_server;
 		RequestHandler	*_request;
-		Configuration	*_config;
 		std::map<int, std::string>	_statusCodeMap;
 		std::map<std::string, std::string>	_headers;
 		std::map<std::string, std::string>	_env;
@@ -27,7 +26,7 @@ class ResponseHandler
 		void setConnection(const std::string& connection);
 		bool isDirectory(const std::string& path);
 	public:
-		ResponseHandler(Server *_server, RequestHandler *_request, Configuration *_config);
+		ResponseHandler(Server *_server, RequestHandler *_request);
 		~ResponseHandler();
 		std::string makeResponse() const;
 		std::string getResponseCode(int code) const;
