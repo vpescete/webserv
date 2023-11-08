@@ -84,42 +84,33 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	}
 }
 
-void   	RequestHandler::parsereq(std::string buffer) {
-	int	i = 0, j = 0;
-	char*	temp;
-	temp = (char*)malloc(10000);
-
-	//first parser of the method, the path and the protocol to private attributes of the class
-	while (buffer[i] != '\n') {
-		while (buffer[i] != ' '){
-			temp[j] = buffer[i];
-			j++;
+void	RequestHandler::parsereq(std::string buffer) {
+	unsigned long i = 0;
+	std::string temp;
+	while (buffer[i] != '\n' && i < buffer.length()) {
+		while (buffer[i] != ' ' && i < buffer.length()) {
+			temp += buffer[i];
 			i++;
 		}
-		temp[j] = '\0';
 		_method = temp;
-		temp = (char*)memset(temp, 0, j);
-		j = 0;
+		temp.clear();
 		i++;
-		while (buffer[i] != ' ') {
-			temp[j] = buffer[i];
-			j++;
+
+		while (buffer[i] != ' ' && i < buffer.length()) {
+			temp += buffer[i];
 			i++;
 		}
-		temp[j] = '\0';
 		_path = temp;
-		temp = (char*)memset(temp, 0, j);
-		j = 0;
+		temp.clear();
 		i++;
-		while (buffer[i] != '\n') {
-			temp[j] = buffer[i];
-			j++;
+
+		while (buffer[i] != '\n' && i < buffer.length()) {
+			temp += buffer[i];
 			i++;
 		}
-		temp[j] = '\0';
 		_protocol = temp;
-		temp = (char*)memset(temp, 0, j);
-		j = 0;
+		temp.clear();
+		i++;
 	}
 	// second parser of the request to put all handler in a map
 	std::string::size_type start = 0;
@@ -127,7 +118,12 @@ void   	RequestHandler::parsereq(std::string buffer) {
 	std::string key;
 	std::string value;
 	std::string temp2;
-	temp2 = buffer.substr(i + 1, buffer.length());
+	// std::cout << GREEN << "[DEBUG METHOD]" << buffer.substr(0, i) << RESET << std::endl;
+	// std::cout << RED << "[DEBUG METHOD]" << buffer.substr(0, i) << RESET << std::endl;
+	if (i + 1 < buffer.length())
+		temp2 = buffer.substr(i + 1, buffer.length());
+	else
+		temp2 = "";
 	// std::cout << YELLOW << buffer << RESET << std::endl;
 	if (_method == "GET" || _method == "DELETE") {
 		get_deleteMethod(start,end, temp2, key, value);
@@ -138,8 +134,8 @@ void   	RequestHandler::parsereq(std::string buffer) {
 		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
 		postMethod(start, end, temp2, key, value, headerEnd);
 	}
-	temp = NULL;
-	free(temp);
+	// temp = NULL;
+	// free(temp);
 }
 
 std::string RequestHandler::getMethod() {
@@ -222,7 +218,7 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 	contentLength += afterBody.length() -1;
 	ss << contentLength;
 	ss >> lengthContent;
-	std::cout << BLUE << autoInd << RED << lengthContent << GREEN << beforeBody << CYAN << bodyText << YELLOW << afterBody << RESET << std::endl;
+	// std::cout << BLUE << autoInd << RED << lengthContent << GREEN << beforeBody << CYAN << bodyText << YELLOW << afterBody << RESET << std::endl;
 	autoInd = autoInd + lengthContent + beforeBody + bodyText + afterBody;
 	closedir(dir);
 	send(clientSocket, autoInd.c_str(), autoInd.length(), 0);

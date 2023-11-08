@@ -53,47 +53,59 @@ int	main(int ac, char *av[]) {
 	std::vector<Server *> srvs;
 	srvs = startServer(confFile.getMapConfig());
 	RequestHandler req;
-	char * bufferino = (char *)malloc(100000);
+	// char * bufferino = (char *)malloc(100000);
 	Clients client;
 	struct kevent events[MAXEVENTS];
 	ssize_t addrlen = sizeof(sockaddr);
-	int clientSocket, bufread = 1;
+	int clientSocket = 0;
 	int connect;
 
 	while (running) {
 		errno = 0;
+		std::string bufferStr;
 		int	numEvents = kevent(kQueue, NULL, 0, events, MAXEVENTS, NULL);
 		for (int i = 0; i < numEvents; i++) {
 			int	index = getRightSocketFd(srvs, events[i].ident);
 			if (index != -1) {
+				// std::cout << CYAN << "Found server with index: " << index << RESET << std::endl;
 				connect = accept(events[i].ident, (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
-				printf("%d\n", connect);
+				// printf("%d\n", connect);
 				client.addNewClient(connect, events[i].ident);
 				EV_SET((*srvs[index]).getKevent(), connect, EVFILT_READ, EV_ADD, 0, 0, NULL);
-				write(1, "2\n", 2);
 				kevent(kQueue, (*srvs[index]).getKevent(), 1, NULL, 0, NULL);
-				write(1, "1\n", 2);
 			}
 			else if (events[i].filter == EVFILT_READ) {
-				if ((bufread = recv(clientSocket, bufferino, 100000, 0)) < 0 ) {
-					// if (errno == EAGAIN || errno == EWOULDBLOCK) {
-					// 	continue;
-					// }
-					// else {
-					// 	break;
-					// }
-				}
-				req.parsereq(bufferino);
+				// std::cout << RED << "Not found server" << RESET << std::endl;
+				size_t totalBytesRead = 0;
+				int bytesRead = 0;
+				index = getRightSocketFd(srvs, client.getRightConnection(events[i].ident)->evIdent);
+				char buff[8192];
+				do {
+					// std::cout << "[DEBUG 1]" << std::endl;
+					bytesRead = recv(events[i].ident, buff, 8192, 0);
+					// std::cout << "[DEBUG 2]" << std::endl;
+					totalBytesRead += bytesRead;
+					// std::cout << "[DEBUG 3]" << std::endl;
+					if (bytesRead > 0) {
+						bufferStr.append(buff, bytesRead);
+						// std::cout << "[DEBUG 4]" << std::endl;
+					}
+					usleep(100);
+					// std::cout << "[DEBUG 5]" << std::endl;
+				} while (bytesRead > 0);
+				req.parsereq(bufferStr);
+				std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
-				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)) || (open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
-					if (open(srvs[index]->getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
-						req.autoIndex(clientSocket);
+				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(clientSocket)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
+					if (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
+						req.autoIndex(events[i].ident);
 					}
 					break;
 				}
-				req.setResponse(srvs[index], clientSocket);
-				memset(bufferino, 0, 10000);
-				close(clientSocket);
+				req.setResponse(srvs[index], events[i].ident);
+				client.closeClientConnection(events[i].ident);
+				// memset(bufferino, 0, 10000);
+				close(events[i].ident);
 			}
 		}
 	}
