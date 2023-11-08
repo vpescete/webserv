@@ -79,7 +79,7 @@ int	main(int ac, char *av[]) {
 						std::string content = buffer.str();
 						std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 						send(clientSocket, response.c_str(), response.length(), 0);
-						
+
 					}
 					else {
 						std::ifstream file("./errors/404.html");

@@ -18,6 +18,8 @@ class LocationPath {
 		std::string	getMethods();
 		std::string	getIndex();
 		std::string	getUploadDir();
+		std::string LocationPath::getRoot();
+		std::string LocationPath::getLocationPath();
 };
 
 #endif

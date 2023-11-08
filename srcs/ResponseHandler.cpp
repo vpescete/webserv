@@ -5,6 +5,7 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, Conf
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
+	setPath(_request->getPath(), _request->getMethod());
 }
 
 std::string ResponseHandler::makeResponse() const
@@ -51,14 +52,91 @@ LocationPath ResponseHandler::getLocationPath(std::string path)
 		if (path.find(it->first) != std::string::npos)
 			return it->second;
 	}
+	return LocationPath();
+}
+
+std::string ResponseHandler::getCurrentPath() const {
+	char buffer[FILENAME_MAX];
+	if (getcwd(buffer, FILENAME_MAX) != NULL) {
+		return std::string(buffer);
+	} else {
+		// Inserire pagina generica d'errore
+		return "";
+	}
+}
+
+std::string ResponseHandler::getErrorPath() {
+	std::string p = getCurrentPath(); // Ottieni il percorso corrente
+	p += "/errors/"; // Aggiungi la directory "errors"
+	if (_headers.find("Status") != _headers.end())// Aggiungi il codice di errore
+   		p += _headers["Status"];
+	else
+		p += "500";
+	p += ".html"; // Aggiungi l'estensione del file
+	return p;
+}
+
+std::string ResponseHandler::getModifyPath(const std::string& requestPath, LocationPath& path) {
+    std::string modifiedPath = requestPath;
+
+    // Se la rotta ha una root specificata, sostituisci il percorso della rotta con la root nel percorso della richiesta
+    if (!path.getRoot().empty()) {
+        size_t pos = modifiedPath.find(path.getLocationPath());
+        if (pos != std::string::npos) {
+            modifiedPath.replace(pos, path.getLocationPath().length(), path.getRoot());
+        }
+    }
+
+    return modifiedPath;
 }
 #pragma endregion region for get method
 
-#pragma region Creation
-void ResponseHandler::setPath()
+#pragma region SET
+
+void ResponseHandler::setPath(const std::string& requestPath, const std::string& requestMethod)
 {
-	std::string path = _request->getPath();
-	LocationPath locationPath = getLocationPath(path);
+	std::string method = requestPath; //_request->extractPath(requestPath);
+	LocationPath path = getLocationPath(requestPath);
+
+	// Controlla se il percorso corrisponde a una rotta
+	if (path.getMethods().find(requestMethod) == std::string::npos)
+	{
+		setStatusCode("405");
+		_path = getErrorPath();
+		return;
+	}
+	// Modifica il percorso in base alla rotta corrispondente
+	std::string responsePath = getModifyPath(requestPath, path);
+
+	// Controlla se il percorso modificato corrisponde a una nuova rotta
+	LocationPath newRoute = getLocationPath(_path);
+	if (newRoute.getMethods().find(requestMethod) == std::string::npos)
+	{
+		setStatusCode("405");
+		_path = getErrorPath();
+		return;
+	}
+
+	// Rimuove eventuali slash iniziali o finali dal percorso
+	if (responsePath.front() == '/')
+		responsePath.erase(responsePath.begin());
+	if (responsePath.back() == '/')
+		responsePath.erase(responsePath.end() - 1);
+
+	// Se il percorso corrisponde esattamente al percorso della nuova rotta, aggiunge l'indice della nuova rotta al percorso
+	if (newRoute.getMethods().find(requestMethod) == std::string::npos && responsePath == newRoute.getLocationPath()) {
+		responsePath += newRoute.getIndex();
+	}
+
+	// Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
+	if ((responsePath == path.getMethods()
+		|| (newRoute.getMethods().find(requestMethod) != std::string::npos && responsePath == newRoute.getMethods()))
+		&& isDirectory(responsePath)) {
+		// aggiungta di "/.index.html" al percorso
+		responsePath = path.getMethods();
+		responsePath += "/.index.html";
+		_path = responsePath;
+	}
 }
 
 void ResponseHandler::setContent()
@@ -71,9 +149,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	(void)path;
 	(void)type;
 }
-#pragma endregion region for creation
 
-#pragma region SET
 void ResponseHandler::setStatusCodeMap()
 {
 	_statusCodeMap[200] = "OK";
@@ -83,6 +159,7 @@ void ResponseHandler::setStatusCodeMap()
 	_statusCodeMap[401] = "Unauthorized";
 	_statusCodeMap[403] = "Forbidden";
 	_statusCodeMap[404] = "Not Found";
+	_statusCodeMap[405] = "Method Not Allowed";
 	_statusCodeMap[500] = "Internal Server Error";
 	_statusCodeMap[501] = "Not Implemented";
 	_statusCodeMap[502] = "Bad Gateway";
@@ -97,11 +174,6 @@ void ResponseHandler::setDefaultHeaders()
 	_headers["Content-Type"] = "text/html";
 	setContentLenght("0");
 	setConnection("keep-alive");
-}
-
-void ResponseHandler::setServer()
-{
-	_headers["Server"] = _server->getHost();
 }
 
 void ResponseHandler::setStatusCode(const std::string& code)
@@ -120,18 +192,24 @@ void ResponseHandler::setContentLenght(const std::string& content)
 	_headers["Content-Length"] = content;
 }
 
-
-void ResponseHandler::setDate(const std::string& date)
-{
-	_headers["Date"] = date;
-}
-
-//response.set_connection("keep-alive");  Enable persistent connections
-//response.set_connection("close");  Disable persistent connections
+//"keep-alive" Enable persistent connections / "close" Disable persistent connections
 void ResponseHandler::setConnection(const std::string& connection)
 {
 	_headers["Connection"] = connection;
 }
 #pragma endregion region for set method
 
+bool isDirectory(const std::string& path) {
+    struct stat info;
 
+    if (stat(path.c_str(), &info) != 0) {
+        // Non è possibile accedere alle informazioni del file/directory, quindi ritorna false
+        return false;
+    } else if (info.st_mode & S_IFDIR) {
+        // Il path corrisponde a una directory, quindi ritorna true
+        return true;
+    } else {
+        // Il path non corrisponde a una directory, quindi ritorna false
+        return false;
+    }
+}

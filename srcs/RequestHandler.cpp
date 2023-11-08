@@ -2,19 +2,19 @@
 
 std::string trim(const std::string& str)
 {
-    std::string::const_iterator it = str.begin();
-    while (it != str.end() && std::isspace(*it))
-    {
-        it++;
-    }
+	std::string::const_iterator it = str.begin();
+	while (it != str.end() && std::isspace(*it))
+	{
+		it++;
+	}
 
-    std::string::const_reverse_iterator rit = str.rbegin();
-    while (rit.base() != it && std::isspace(*rit))
-    {
-        rit++;
-    }
+	std::string::const_reverse_iterator rit = str.rbegin();
+	while (rit.base() != it && std::isspace(*rit))
+	{
+		rit++;
+	}
 
-    return std::string(it, rit.base());
+	return std::string(it, rit.base());
 }
 
 RequestHandler::RequestHandler(){}
@@ -169,6 +169,25 @@ std::string RequestHandler::getCookies(const std::string& name)
 		}
 	}
 	return "";
+}
+
+std::string RequestHandler::extractPath(const std::string& requestLine) {
+	std::istringstream iss(requestLine);
+	std::string path;
+
+	// Salta il metodo
+	iss.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
+
+	// Estrai il percorso completo (inclusa la stringa di query)
+	std::getline(iss, path, ' ');
+
+	// Rimuovi la stringa di query dal percorso, se presente
+	size_t pos = path.find('?');
+	if (pos != std::string::npos) {
+		path = path.substr(0, pos);  // Rimuovi la stringa di query dal percorso
+	}
+
+	return path;
 }
 
 std::string RequestHandler::getMethod() {

@@ -11,6 +11,7 @@ class RequestHandler {
 		std::string _bodyStart;
 		std::string _bodyEnd;
 		std::map <std::string, std::string> _mapBody;
+
 	public:
 		RequestHandler();
 		~RequestHandler();
@@ -19,6 +20,8 @@ class RequestHandler {
 		std::string getPath();
 		std::string getProtocol();
 		std::string getCookies(const std::string& name);
+		std::string RequestHandler::extractPath(const std::string& requestLine);
+
 };
 
 #endif

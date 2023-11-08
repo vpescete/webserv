@@ -52,7 +52,6 @@
 # include <map>
 # include <algorithm>
 
-
 // class
 # include "ParserConf.hpp"
 # include "Server.hpp"
