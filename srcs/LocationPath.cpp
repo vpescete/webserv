@@ -5,7 +5,6 @@ LocationPath::LocationPath() {
 
 LocationPath::LocationPath(std::string confFile, std::string path) : _locationPath(path) {
 	_setMapPath(confFile);
-	// std::cout << CYAN << getIndex() << RESET << std::endl;
 }
 
 LocationPath::~LocationPath() {
@@ -18,7 +17,6 @@ LocationPath &LocationPath::operator=(const LocationPath &rhs) {
 }
 
 std::string LocationPath::getMethods() {
-	// std::cout << _mapPath["methods"] << std::endl;
 	return _mapPath["methods"];
 }
 
@@ -47,7 +45,6 @@ void LocationPath::_setMapPath(std::string confFile) {
 		if(end != std::string::npos) {
 			key = confFile.substr(i, start - i);
 			value = confFile.substr(start + 1, end - start - 1);
-			// std::cout << RED << key << " : " << value << RESET <<std::endl;
 			_mapPath.insert(std::pair<std::string, std::string>(key, value));
 		}
 		confFile = confFile.substr(end + 1);
