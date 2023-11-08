@@ -9,6 +9,7 @@ Server::Server(Configuration &config) : _conf(&config) {
 Server::~Server() {
 }
 
+#pragma region GET
 u_int16_t Server::getPort() {
 
 	return this->_port;
@@ -26,10 +27,15 @@ sockaddr_in *Server::getServerAddress() {
 	return &_serverAddress;
 }
 
+Configuration &Server::getConf() {
+	return *_conf;
+}
+#pragma endregion
+
 void Server::SocketException() {
 	try {
 		if (_socketFD == -1)
-			throw std::exception(); 
+			throw std::exception();
 	} catch (std::exception & e) {
 		std::cout << RED << "Error while opening the socket" << RESET << std::endl;
 		exit(EXIT_FAILURE);
@@ -72,7 +78,7 @@ void Server::serverConnection(int kQueue) {
 		exit(EXIT_FAILURE);
 	}
 
-	// 	struct kevent è un tipo di struttura dati utilizzata in ambienti Unix-like, 
+	// 	struct kevent è un tipo di struttura dati utilizzata in ambienti Unix-like,
 	// in particolare nei sistemi operativi basati su FreeBSD, per gestire eventi di I/O (input/output) asincroni.
 	// È parte di un meccanismo noto come "kqueue" (coda kernel), che offre un'efficiente gestione degli eventi di sistema,
 	// tra cui eventi di socket, file, segnali, e altro.In un contesto di server web, struct kevent e il sistema kqueue
@@ -92,3 +98,4 @@ void Server::_setPort() {
 void Server::_setHost() {
 	_host = _conf->getHost();
 }
+

@@ -18,14 +18,14 @@ class ResponseHandler
 		std::string _path;
 		void setDefaultHeaders();
 		void setStatusCodeMap();
-		void ResponseHandler::setPath(const std::string& requestPath, const std::string& requestMethod);
+		void setPath(const std::string& requestPath, const std::string& requestMethod);
 		void setContent();
 		void setContentType(std::string path, std::string type = "");
 		void setStatusCode(const std::string& code);
 		void setCookies(const std::string& name, const std::string& value);
 		void setContentLenght(const std::string& content);
 		void setConnection(const std::string& connection);
-
+		bool isDirectory(const std::string& path);
 	public:
 		ResponseHandler(Server *_server, RequestHandler *_request, Configuration *_config);
 		~ResponseHandler();
@@ -33,9 +33,9 @@ class ResponseHandler
 		std::string getResponseCode(int code) const;
 		LocationPath getLocationPath(std::string path);
 		std::string getDate() const;
-		std::string ResponseHandler::getCurrentPath() const;
-		std::string ResponseHandler::getErrorPath();
-		std::string ResponseHandler::getModifyPath(const std::string& requestPath, LocationPath& path);
+		std::string getCurrentPath() const;
+		std::string getModifyPath(const std::string& requestPath, LocationPath& path);
+
 };
 
 #endif

@@ -8,6 +8,10 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, Conf
 	setPath(_request->getPath(), _request->getMethod());
 }
 
+ResponseHandler::~ResponseHandler()
+{
+}
+
 std::string ResponseHandler::makeResponse() const
 {
 	std::string response("HTTP/1.1 ");
@@ -21,6 +25,22 @@ std::string ResponseHandler::makeResponse() const
 	response.append(getDate());
 	return response;
 }
+
+bool ResponseHandler::isDirectory(const std::string& path) {
+	struct stat info;
+
+	if (stat(path.c_str(), &info) != 0) {
+		// Non è possibile accedere alle informazioni del file/directory, quindi ritorna false
+		return false;
+	} else if (info.st_mode & S_IFDIR) {
+		// Il path corrisponde a una directory, quindi ritorna true
+		return true;
+	} else {
+		// Il path non corrisponde a una directory, quindi ritorna false
+		return false;
+	}
+}
+
 
 #pragma region GET
 std::string ResponseHandler::getResponseCode(int code) const
@@ -46,7 +66,7 @@ std::string ResponseHandler::getDate() const
 
 LocationPath ResponseHandler::getLocationPath(std::string path)
 {
-	std::map<std::string, LocationPath> locationPaths = _config->getLocationPath();
+	std::map<std::string, LocationPath> locationPaths = _server->getConf().getLocationPath();
 	for (std::map<std::string, LocationPath>::iterator it = locationPaths.begin(); it != locationPaths.end(); ++it)
 	{
 		if (path.find(it->first) != std::string::npos)
@@ -65,29 +85,18 @@ std::string ResponseHandler::getCurrentPath() const {
 	}
 }
 
-std::string ResponseHandler::getErrorPath() {
-	std::string p = getCurrentPath(); // Ottieni il percorso corrente
-	p += "/errors/"; // Aggiungi la directory "errors"
-	if (_headers.find("Status") != _headers.end())// Aggiungi il codice di errore
-   		p += _headers["Status"];
-	else
-		p += "500";
-	p += ".html"; // Aggiungi l'estensione del file
-	return p;
-}
-
 std::string ResponseHandler::getModifyPath(const std::string& requestPath, LocationPath& path) {
-    std::string modifiedPath = requestPath;
+	std::string modifiedPath = requestPath;
 
-    // Se la rotta ha una root specificata, sostituisci il percorso della rotta con la root nel percorso della richiesta
-    if (!path.getRoot().empty()) {
-        size_t pos = modifiedPath.find(path.getLocationPath());
-        if (pos != std::string::npos) {
-            modifiedPath.replace(pos, path.getLocationPath().length(), path.getRoot());
-        }
-    }
+	// Se la rotta ha una root specificata, sostituisci il percorso della rotta con la root nel percorso della richiesta
+	if (!path.getRoot().empty()) {
+		size_t pos = modifiedPath.find(path.getLocationPath());
+		if (pos != std::string::npos) {
+			modifiedPath.replace(pos, path.getLocationPath().length(), path.getRoot());
+		}
+	}
 
-    return modifiedPath;
+	return modifiedPath;
 }
 #pragma endregion region for get method
 
@@ -95,14 +104,14 @@ std::string ResponseHandler::getModifyPath(const std::string& requestPath, Locat
 
 void ResponseHandler::setPath(const std::string& requestPath, const std::string& requestMethod)
 {
-	std::string method = requestPath; //_request->extractPath(requestPath);
+	std::string method = _request->extractPath(requestPath);
 	LocationPath path = getLocationPath(requestPath);
 
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
-		_path = getErrorPath();
+		_path = _config->getErrorPath(getResponseCode(405));
 		return;
 	}
 	// Modifica il percorso in base alla rotta corrispondente
@@ -113,7 +122,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	if (newRoute.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
-		_path = getErrorPath();
+		_path = _config->getErrorPath(getResponseCode(405));
 		return;
 	}
 
@@ -199,17 +208,3 @@ void ResponseHandler::setConnection(const std::string& connection)
 }
 #pragma endregion region for set method
 
-bool isDirectory(const std::string& path) {
-    struct stat info;
-
-    if (stat(path.c_str(), &info) != 0) {
-        // Non è possibile accedere alle informazioni del file/directory, quindi ritorna false
-        return false;
-    } else if (info.st_mode & S_IFDIR) {
-        // Il path corrisponde a una directory, quindi ritorna true
-        return true;
-    } else {
-        // Il path non corrisponde a una directory, quindi ritorna false
-        return false;
-    }
-}

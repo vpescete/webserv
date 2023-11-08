@@ -20,7 +20,7 @@ class RequestHandler {
 		std::string getPath();
 		std::string getProtocol();
 		std::string getCookies(const std::string& name);
-		std::string RequestHandler::extractPath(const std::string& requestLine);
+		std::string extractPath(const std::string& requestLine);
 
 };
 
