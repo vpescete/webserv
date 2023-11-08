@@ -12,8 +12,10 @@ class LocationPath {
 	public:
 		LocationPath();
 		LocationPath(std::string confFile, std::string path);
+
 		~LocationPath();
 
+		LocationPath& operator=(const LocationPath & rhs);
 		// getter
 		std::string	getMethods();
 		std::string	getIndex();
