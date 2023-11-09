@@ -187,6 +187,7 @@ void ResponseHandler::sendResponse()
 		write(1, "dioboia\n", 8);
 		_path = getErrorPath();
 	}
+	//_path = responsePath;
 }
 
 void ResponseHandler::setContent()
