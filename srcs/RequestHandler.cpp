@@ -269,17 +269,10 @@ std::string RequestHandler::getCookies(const std::string& name)
 }
 
 std::string RequestHandler::extractPath(const std::string& requestLine) {
-	std::istringstream iss(requestLine);
-	std::string path;
-
-	// Salta il metodo
-	iss.ignore(std::numeric_limits<std::streamsize>::max(), ' ');
-
-	// Estrai il percorso completo (inclusa la stringa di query)
-	std::getline(iss, path, ' ');
+	std::string path = requestLine;
 
 	// Rimuovi la stringa di query dal percorso, se presente
-	size_t pos = path.find('?');
+	size_t pos = requestLine.find('?');
 	if (pos != std::string::npos) {
 		path = path.substr(0, pos);  // Rimuovi la stringa di query dal percorso
 	}

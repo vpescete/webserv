@@ -31,10 +31,13 @@ class ResponseHandler
 		std::string makeResponse() const;
 		std::string getResponseCode(int code) const;
 		LocationPath getLocationPath(std::string path);
+		std::string getPath() const;
+		std::string getContent() const;
+		std::string getContentType() const;
+		std::string getContentLenght() const;
 		std::string getDate() const;
 		std::string getCurrentPath() const;
 		std::string getModifyPath(const std::string& requestPath, LocationPath& path);
-
 };
 
 #endif

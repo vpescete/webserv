@@ -6,6 +6,10 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request)
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
+	setContent();
+	std::cout << "content: " << getContent() << std::endl;
+	setContentType(_path);
+	std::cout << "content type: " << getContentType() << std::endl;
 }
 
 ResponseHandler::~ResponseHandler()
@@ -41,8 +45,27 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
-
 #pragma region GET
+std::string ResponseHandler::getPath() const
+{
+	return _path;
+}
+
+std::string ResponseHandler::getContent() const
+{
+	return _headers.at("Content");
+}
+
+std::string ResponseHandler::getContentType() const
+{
+	return _headers.at("Content-Type");
+}
+
+std::string ResponseHandler::getContentLenght() const
+{
+	return _headers.at("Content-Length");
+}
+
 std::string ResponseHandler::getResponseCode(int code) const
 {
 	if (_statusCodeMap.find(code) != _statusCodeMap.end())
@@ -72,13 +95,7 @@ LocationPath ResponseHandler::getLocationPath(std::string path)
 		if (path.find(it->first, 0) == 0)
 			return it->second;
 	}
-	std::map<std::string, LocationPath> secondTry = _server->getLocationPathMap();
-	if (secondTry.find("/") != secondTry.end())
-	{
-		return LocationPath();
-	}
-	return secondTry.find("/")->second;
-
+	return LocationPath();
 }
 
 std::string ResponseHandler::getCurrentPath() const {
@@ -107,7 +124,6 @@ std::string ResponseHandler::getModifyPath(const std::string& requestPath, Locat
 #pragma endregion region for get method
 
 #pragma region SET
-
 void ResponseHandler::setPath(const std::string& requestPath, const std::string& requestMethod)
 {
 	std::string method = _request->extractPath(requestPath);
@@ -120,6 +136,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		return;
 	}
 
+	std::cout << "method: " << path.getMethods().find(requestMethod) << std::endl;
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
@@ -133,7 +150,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 
 
 	// Controlla se il percorso modificato corrisponde a una nuova rotta
-	LocationPath newRoute = getLocationPath(_path);
+	LocationPath newRoute = getLocationPath(responsePath);
 	if (newRoute.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
@@ -152,15 +169,14 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		responsePath += newRoute.getIndex();
 	}
 
-	// Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
+	//Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
 	if ((responsePath == path.getMethods()
 		|| (newRoute.getMethods().find(requestMethod) != std::string::npos && responsePath == newRoute.getMethods()))
 		&& isDirectory(responsePath)) {
 		// aggiungta di "/.index.html" al percorso
-		responsePath = path.getMethods();
-		responsePath += "/.index.html";
-		_path = responsePath;
+		responsePath += "/www/index.html";
 	}
+	_path = responsePath;
 }
 
 void ResponseHandler::setContent()
