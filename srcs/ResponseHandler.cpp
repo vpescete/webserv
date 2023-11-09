@@ -29,6 +29,49 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
+void ResponseHandler::handleCGI(const std::string& scriptPath) {
+	int pipefd[2];
+	pid_t pid;
+	char buf;
+	std::string output;
+
+	// Create a pipe
+	if (pipe(pipefd) == -1) {
+		perror("pipe");
+		exit(EXIT_FAILURE);
+	}
+
+	// Fork a new process
+	pid = fork();
+	if (pid == -1) {
+		perror("fork");
+		exit(EXIT_FAILURE);
+	}
+
+	if (pid == 0) {    // This is the child process
+		close(pipefd[0]);  // Close read end of the pipe
+
+		// Redirect stdout to the write end of the pipe
+		dup2(pipefd[1], STDOUT_FILENO);
+		close(pipefd[1]);  // Close write end of the pipe
+
+		// Execute the CGI script
+		execl(scriptPath.c_str(), scriptPath.c_str(), (char*)NULL);
+		exit(EXIT_FAILURE);
+	} else {  // This is the parent process
+		close(pipefd[1]);  // Close write end of the pipe
+
+		// Read the output of the CGI script from the pipe and add it to the response content
+		while (read(pipefd[0], &buf, 1) > 0) {
+			_content += buf;
+		}
+		close(pipefd[0]);  // Close read end of the pipe
+
+		// Wait for the child process to finish
+		wait(NULL);
+	}
+}
+
 #pragma region GET
 std::string ResponseHandler::getPath() const
 {
@@ -123,7 +166,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	std::string method = _request->extractPath(requestPath);
 	LocationPath path = getLocationPath(requestPath);
 
-	// Controlla se è stato trovato un path
+	// Controlla se è stato trovato un path: se non lo trova, imposta status di errore.
 	if (path.getLocationPath().empty()) {
 		setStatusCode("404");
 		_path = _server->getErrorPath(getResponseCode(404));
@@ -131,7 +174,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	}
 
 	// std::cout << "method: " << path.getMethods().find(requestMethod) << std::endl;
-	// Controlla se il percorso corrisponde a una rotta
+	// Controlla se il percorso corrisponde a una rotta: se non lo trova, imposta status di errore.
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
@@ -251,9 +294,9 @@ void ResponseHandler::setContent()
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
 		}
-		else if (type == "py" || type == "php") // file has to go through cgi
+		else if (type == "py") // file has to go through cgi
 		{
-			; // no clue about how the cgi works
+			handleCGI(_path);
 		}
 		else // file is probably an html
 		{
@@ -268,12 +311,12 @@ void ResponseHandler::setContent()
 			{
 				file.close();
 				setStatusCode("400");
-				
+
 				// return ;
 			}
 			file.seekg(0, std::ios::beg); // go back to the start of the file
 			std::stringstream buffer;
-    		buffer << file.rdbuf(); // read the entire file through stringstream
+			buffer << file.rdbuf(); // read the entire file through stringstream
 			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
 			_content = tmp.append(_content, 0, _content.size());
 			std::stringstream ss;
@@ -324,6 +367,44 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
+}
+
+void ResponseHandler::setEnv() {
+	std::map<std::string, std::string>	headers = _headers;
+	std::map<std::string, std::string>	env;
+	char cwd[9999];
+	getcwd(cwd, sizeof(cwd));
+
+	env["REDIRECT_STATUS"] = "200";
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["SCRIPT_NAME"] = _path;
+	env["SCRIPT_FILENAME"] = _path;
+	env["REQUEST_METHOD"] = _request->getMethod();
+	env["CONTENT_LENGTH"] = headers["Content-Length"];
+	env["CONTENT_TYPE"] = headers["Content-Type"];
+	env["PATH_INFO"] = _path;
+	env["PATH_TRANSLATED"] =_path;
+	env["QUERY_STRING"] = _path;
+	env["REMOTEaddr"] = _server->getHost();
+	env["UPLOAD_PATH"] = "/upload";
+	if (headers.find("Hostname") != headers.end())
+		env["SERVER_NAME"] = headers["Hostname"];
+	else
+		env["SERVER_NAME"] = env["REMOTEaddr"];
+	env["SERVER_PORT"] = std::to_string(_server->getPort());
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = "Webserv/1.0";
+	env["HTTP_COOKIE"] = headers["Cookie"];
+
+	_env = new char*[env.size() + 1];
+	int i = 0;
+	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
+	{
+		std::string tmp = it->first + "=" + it->second;
+		_env[i] = new char[tmp.size() + 1];
+		std::strcpy(_env[i], tmp.c_str());
+		++i;
+	}
 }
 
 void ResponseHandler::setStatusCodeMap()
