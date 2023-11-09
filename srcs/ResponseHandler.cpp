@@ -130,7 +130,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		return;
 	}
 
-	std::cout << "method: " << path.getMethods().find(requestMethod) << std::endl;
+	// std::cout << "method: " << path.getMethods().find(requestMethod) << std::endl;
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
@@ -151,25 +151,26 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		_path = _server->getErrorPath(getResponseCode(405));
 		return;
 	}
-
+	std::cout << "path: " << responsePath << std::endl;
 	// Rimuove eventuali slash iniziali o finali dal percorso
-	if (responsePath.front() == '/')
-		responsePath.erase(responsePath.begin());
-	if (responsePath.back() == '/')
-		responsePath.erase(responsePath.end() - 1);
-
+	if (responsePath != "/") {
+		if (responsePath.front() == '/')
+			responsePath.erase(responsePath.begin());
+		if (responsePath.back() == '/')
+			responsePath.erase(responsePath.end() - 1);
+	}
 	// Se il percorso corrisponde esattamente al percorso della nuova rotta, aggiunge l'indice della nuova rotta al percorso
-	if (newRoute.getMethods().find(requestMethod) == std::string::npos && responsePath == newRoute.getLocationPath()) {
-		responsePath += newRoute.getIndex();
-	}
+	// if (newRoute.getMethods().find(requestMethod) == std::string::npos && responsePath == newRoute.getLocationPath()) {
+	// 	responsePath += newRoute.getIndex();
+	// }
 
-	//Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
-	if ((responsePath == path.getMethods()
-		|| (newRoute.getMethods().find(requestMethod) != std::string::npos && responsePath == newRoute.getMethods()))
-		&& isDirectory(responsePath)) {
-		// aggiungta di "/.index.html" al percorso
-		responsePath += "/www/index.html";
-	}
+	// //Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
+	// if ((responsePath == path.getMethods()
+	// 	|| (newRoute.getMethods().find(requestMethod) != std::string::npos && responsePath == newRoute.getMethods()))
+	// 	&& isDirectory(responsePath)) {
+	// 	// aggiungta di "/.index.html" al percorso
+	// 	responsePath += "/www/index.html";
+	// }
 	_path = responsePath;
 }
 
@@ -187,25 +188,53 @@ void ResponseHandler::sendResponse()
 		write(1, "dioboia\n", 8);
 		_path = getErrorPath();
 	}
-	//_path = responsePath;
+	std::ifstream file(_path);
+	if (_path == "/") {
+		std::ifstream file(_server->getIndex());
+		// if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string content = buffer.str();
+			std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			send(_clientSocket, response.c_str(), response.length(), 0);
+		// }
+	}
+	else {
+		std::ifstream file("." + _path);
+		// if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string content = buffer.str();
+			std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			send(_clientSocket, response.c_str(), response.length(), 0);
+		// }
+	}
 }
 
 void ResponseHandler::setContent()
 {
-	std::ifstream file(_server->getIndex());
+	std::ifstream file;
+	std::cout << CYAN << _path << RESET << std::endl;
+	if (_path == "/")
+		file.open(_server->getIndex());
+	else
+		file.open(_path);
+	if (!file.is_open())
+		std::cout << "ahahahahah" << std::endl;
 	struct stat s;
 	std::string _content;
-
-
-	if (stat(_path.c_str(), &s) == -1) // file doesn't exist
+	std::cout << _path << std::endl;
+	printf("%d\n", stat(_path.c_str(), &s));
+	if (_path != "/" && stat(_path.c_str(), &s) == -1) // file doesn't exist
 	{
 		file.close();
+		std::cout << "diomadonna" << std::endl;
 		setStatusCode("404");
 		// _path = _server->getErrorPath(getResponseCode(404));
 		// file.open(_path, std::ios::in);
 		// return ;
 	}
-	if (file.is_open() && !(s.st_mode & S_IFDIR)) // check if file is open or is a directory
+	if ((file.is_open() && !(s.st_mode & S_IFDIR)) || _path == "/") // check if file is open or is a directory
 	{
 		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
 		std::string type; // extension of the response file
@@ -255,6 +284,7 @@ void ResponseHandler::setContent()
 	else
 	{
 		file.close();
+		std::cout << "gesupuppafave" << std::endl;
 		setStatusCode("404");
 		// return ;
 	}
@@ -298,6 +328,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 
 void ResponseHandler::setStatusCodeMap()
 {
+	_statusCodeMap[0] = "OK";
 	_statusCodeMap[200] = "OK";
 	_statusCodeMap[201] = "Created";
 	_statusCodeMap[204] = "No Content";
