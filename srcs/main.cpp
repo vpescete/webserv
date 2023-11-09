@@ -17,7 +17,6 @@ static void signal_handler(int i) {
 	if (i == SIGINT)
 		running = 0;
 	std::cout << std::endl << YELLOW << "Stopping server..." << RESET << std::endl;
-	// exit(0);
 }
 
 void	disconnect(std::vector<Server *> srvs) {
@@ -84,6 +83,7 @@ int	main(int ac, char *av[]) {
 					usleep(100);
 				} while (bytesRead > 0);
 				req.parsereq(bufferStr);
+				// std::cout << BLUE << req.getPath() << RESET << std::endl << RED << bufferStr << RESET << std::endl;;
 				//std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
 				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {

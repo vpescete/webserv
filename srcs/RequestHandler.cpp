@@ -171,8 +171,7 @@ std::string RequestHandler::getProtocol() {
 
 
 void	RequestHandler::setResponse(Server* svr, int clientSocket) {
-	//std::cout << BLUE << _method << "  " << _path << "  " << _protocol << RESET << std::endl;
-	ResponseHandler res = ResponseHandler(svr, this);
+	ResponseHandler res = ResponseHandler(svr, this, clientSocket);
 	if (_path == "/") {
 		std::ifstream file(svr->getIndex());
 		if (file.is_open()) {

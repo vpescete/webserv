@@ -1,29 +1,17 @@
 #include "ResponseHandler.hpp"
 
-ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request)
-	: _server(_server), _request(_request)
+ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs)
+	: _server(_server), _request(_request), _clientSocket(_cs)
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
+	setContent();
+	setContentType(_path);
 }
 
 ResponseHandler::~ResponseHandler()
 {
-}
-
-std::string ResponseHandler::makeResponse() const
-{
-	std::string response("HTTP/1.1 ");
-	for (std::map<std::string, std::string>::const_iterator it = _headers.begin(); it->first != _headers.at("Date"); ++it)
-	{
-		response.append(it->first);
-		response.append(": ");
-		response.append(it->second);
-		response.append("\r\n");
-	}
-	response.append(getDate());
-	return response;
 }
 
 bool ResponseHandler::isDirectory(const std::string& path) {
@@ -41,8 +29,27 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
-
 #pragma region GET
+std::string ResponseHandler::getPath() const
+{
+	return _path;
+}
+
+std::string ResponseHandler::getContent() const
+{
+	return _headers.at("Content");
+}
+
+std::string ResponseHandler::getContentType() const
+{
+	return _headers.at("Content-Type");
+}
+
+std::string ResponseHandler::getContentLenght() const
+{
+	return _headers.at("Content-Length");
+}
+
 std::string ResponseHandler::getResponseCode(int code) const
 {
 	if (_statusCodeMap.find(code) != _statusCodeMap.end())
@@ -72,13 +79,7 @@ LocationPath ResponseHandler::getLocationPath(std::string path)
 		if (path.find(it->first, 0) == 0)
 			return it->second;
 	}
-	std::map<std::string, LocationPath> secondTry = _server->getLocationPathMap();
-	if (secondTry.find("/") != secondTry.end())
-	{
-		return LocationPath();
-	}
-	return secondTry.find("/")->second;
-
+	return LocationPath();
 }
 
 std::string ResponseHandler::getCurrentPath() const {
@@ -104,10 +105,19 @@ std::string ResponseHandler::getModifyPath(const std::string& requestPath, Locat
 
 	return modifiedPath;
 }
+
+std::string ResponseHandler::getStatusCode() const
+{
+	return _headers.at("Status");
+}
+
+std::string ResponseHandler::getErrorPath() {
+	return ("errors/" + getStatusCode() + ".html");
+}
+
 #pragma endregion region for get method
 
 #pragma region SET
-
 void ResponseHandler::setPath(const std::string& requestPath, const std::string& requestMethod)
 {
 	std::string method = _request->extractPath(requestPath);
@@ -120,6 +130,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		return;
 	}
 
+	std::cout << "method: " << path.getMethods().find(requestMethod) << std::endl;
 	// Controlla se il percorso corrisponde a una rotta
 	if (path.getMethods().find(requestMethod) == std::string::npos)
 	{
@@ -133,7 +144,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 
 
 	// Controlla se il percorso modificato corrisponde a una nuova rotta
-	LocationPath newRoute = getLocationPath(_path);
+	LocationPath newRoute = getLocationPath(responsePath);
 	if (newRoute.getMethods().find(requestMethod) == std::string::npos)
 	{
 		setStatusCode("405");
@@ -152,21 +163,35 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		responsePath += newRoute.getIndex();
 	}
 
-	// Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
+	//Se il percorso corrisponde esattamente al percorso della rotta originale o della nuova rotta, controlla se il percorso corrisponde a una directory
 	if ((responsePath == path.getMethods()
 		|| (newRoute.getMethods().find(requestMethod) != std::string::npos && responsePath == newRoute.getMethods()))
 		&& isDirectory(responsePath)) {
 		// aggiungta di "/.index.html" al percorso
-		responsePath = path.getMethods();
-		responsePath += "/.index.html";
-		_path = responsePath;
+		responsePath += "/www/index.html";
+	}
+	_path = responsePath;
+}
+
+void ResponseHandler::sendResponse()
+{
+	std::string status = getStatusCode();
+	std::stringstream ss;
+	int statuscode;
+
+	ss << status;
+	ss >> statuscode;
+	std::cout << CYAN << status << RESET << std::endl;
+	if (status != "0" && status != "200")
+	{
+		write(1, "dioboia\n", 8);
+		_path = getErrorPath();
 	}
 }
 
 void ResponseHandler::setContent()
 {
-	std::ifstream file;
-	file.open(_path, std::ios::in);
+	std::ifstream file(_server->getIndex());
 	struct stat s;
 	std::string _content;
 
@@ -175,13 +200,14 @@ void ResponseHandler::setContent()
 	{
 		file.close();
 		setStatusCode("404");
-		return ;
+		// _path = _server->getErrorPath(getResponseCode(404));
+		// file.open(_path, std::ios::in);
+		// return ;
 	}
 	if (file.is_open() && !(s.st_mode & S_IFDIR)) // check if file is open or is a directory
 	{
 		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
 		std::string type; // extension of the response file
-
 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
 			_path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
 		else type = "";
@@ -211,8 +237,9 @@ void ResponseHandler::setContent()
 			else
 			{
 				file.close();
-				setStatusCode("500");
-				return ;
+				setStatusCode("400");
+				
+				// return ;
 			}
 			file.seekg(0, std::ios::beg); // go back to the start of the file
 			std::stringstream buffer;
@@ -228,9 +255,13 @@ void ResponseHandler::setContent()
 	{
 		file.close();
 		setStatusCode("404");
-		return ;
+		// return ;
 	}
 	file.close();
+			std::cout << RED << _path << RESET << std::endl;
+	sendResponse();
+	// std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + _headers["Content-Length"] + "\r\n\r\n" + _content;
+	// send(_clientSocket, response.c_str(), response.length(), 0);
 }
 
 void ResponseHandler::setContentType(std::string path, std::string type)
@@ -292,7 +323,7 @@ void ResponseHandler::setDefaultHeaders()
 
 void ResponseHandler::setStatusCode(const std::string& code)
 {
-	_headers["Status"] = code + " " + getResponseCode(std::atoi(code.c_str()));
+	_headers["Status"] = code;
 }
 
 void ResponseHandler::setCookies(const std::string& name, const std::string& value)
@@ -312,4 +343,3 @@ void ResponseHandler::setConnection(const std::string& connection)
 	_headers["Connection"] = connection;
 }
 #pragma endregion region for set method
-
