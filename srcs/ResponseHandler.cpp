@@ -155,7 +155,6 @@ std::string ResponseHandler::getStatusCode() const
 }
 
 std::string ResponseHandler::getErrorPath() {
-	std::cout << "prova" << std::endl;
 	return ("/errors/" + getStatusCode() + ".html");
 }
 
