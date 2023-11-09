@@ -15,6 +15,7 @@ class ResponseHandler
 		std::map<std::string, std::string>	_headers;
 		char **_env;
 		std::string _path;
+		std::string _fullPath;
 		std::string _content;
 		int _clientSocket;
 		void setDefaultHeaders();

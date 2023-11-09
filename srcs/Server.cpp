@@ -128,11 +128,3 @@ void Server::_setMap() {
 std::map<std::string, LocationPath> Server::getLocationPathMap() {
 	return _locationPathMap;
 }
-
-std::string Server::getErrorPath(std::string errorCode) {
-	try {
-		return _map[errorCode];
-	} catch (std::exception & e) {
-		return DEFAULT_ERROR_PAGE;
-	}
-}
