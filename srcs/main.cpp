@@ -86,19 +86,24 @@ int	main(int ac, char *av[]) {
 				// std::cout << BLUE << req.getPath() << RESET << std::endl << RED << bufferStr << RESET << std::endl;;
 				//std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
-				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1)) {
-					if (open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK) == -1) {
+				int fdOpenFile = open((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK);
+				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (fdOpenFile == -1)) {
+					if (fdOpenFile == -1) {
 						//std::cout << (*srvs[index]).getIndex() << std::endl;
 						req.autoIndex(events[i].ident);
 						req.setResponse(srvs[index], events[i].ident);
 					}
 					client.closeClientConnection(events[i].ident);
-					close(events[i].ident);
+					close(fdOpenFile);
+					usleep(100);
+					// close(events[i].ident);
 					break;
 				}
+				close(fdOpenFile);
 				req.setResponse(srvs[index], events[i].ident);
 				client.closeClientConnection(events[i].ident);
-				close(events[i].ident);
+				usleep(100);
+				// close(events[i].ident);
 			}
 		}
 	}
