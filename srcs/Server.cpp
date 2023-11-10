@@ -78,7 +78,7 @@ void Server::serverConnection(int kQueue) {
 		exit(EXIT_FAILURE);
 	}
 	// Mette il server in ascolto su localhost
-	if (listen(_socketFD, 10) < 0) {
+	if (listen(_socketFD, MAXEVENTS +100) < 0) {
 		std::cout << RED << "Error: Fail to listet on socket" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}

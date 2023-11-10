@@ -64,6 +64,7 @@ int	main(int ac, char *av[]) {
 		for (int i = 0; i < numEvents; i++) {
 			int	index = getRightSocketFd(srvs, events[i].ident);
 			if (index != -1) {
+				std::cout << "madonnatroia" << std::endl;
 				connect = accept(events[i].ident, (struct sockaddr *)(*srvs[index]).getServerAddress(), (socklen_t*)&addrlen);
 				client.addNewClient(connect, events[i].ident);
 				EV_SET((*srvs[index]).getKevent(), connect, EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -80,7 +81,7 @@ int	main(int ac, char *av[]) {
 					if (bytesRead > 0) {
 						bufferStr.append(buff, bytesRead);
 					}
-					usleep(100);
+					// usleep(100);
 				} while (bytesRead > 0);
 				req.parsereq(bufferStr);
 				// std::cout << BLUE << req.getPath() << RESET << std::endl << RED << bufferStr << RESET << std::endl;;
@@ -100,10 +101,10 @@ int	main(int ac, char *av[]) {
 				client.closeClientConnection(events[i].ident);
 				close(events[i].ident);
 			}
+			printf("%lu\n", events[i].ident);
 		}
 	}
 	disconnect(srvs);
 	close(kQueue);
 	return 0;
 }
-
