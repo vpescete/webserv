@@ -209,6 +209,7 @@ void ResponseHandler::sendResponse()
 
 	ss << status;
 	ss >> statuscode;
+	std::string::size_type i = 0, j = 0;
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
 	if (_path == "/") {
@@ -217,7 +218,7 @@ void ResponseHandler::sendResponse()
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
-		std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
 	}
@@ -229,8 +230,14 @@ void ResponseHandler::sendResponse()
 			std::stringstream buffer;
 			buffer << file.rdbuf();
 			std::string content = buffer.str();
-			std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			send(_clientSocket, response.c_str(), response.length(), 0);
+			std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+			while(i < response.length()) {
+				j = i;
+				i += send(_clientSocket, response.c_str(), response.length(), 0);
+				std::cout << i << "     " << j << "        "<< response.length() << std::endl;
+				if (j == i + 1)
+					break;
+			}
 		// }
 	}
 }
