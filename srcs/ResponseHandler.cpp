@@ -5,9 +5,7 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int 
 {
 	setStatusCodeMap();
 	setDefaultHeaders();
-			std::cout << "ciao" << std::endl;
 	setPath(_request->getPath(), _request->getMethod());
-				std::cout << "gesù figlio di troia" << std::endl;
 
 	setContentType(_path);
 	setContent();
@@ -128,15 +126,15 @@ LocationPath ResponseHandler::getLocationPath(std::string path)
 	return LocationPath();
 }
 
-std::string ResponseHandler::getCurrentPath() const {
-	char buffer[FILENAME_MAX];
-	if (getcwd(buffer, FILENAME_MAX) != NULL) {
-		return std::string(buffer);
-	} else {
-		// Inserire pagina generica d'errore
-		return "";
-	}
-}
+// std::string ResponseHandler::getCurrentPath() const {
+// 	char buffer[FILENAME_MAX];
+// 	if (getcwd(buffer, FILENAME_MAX) != NULL) {
+// 		return std::string(buffer);
+// 	} else {
+// 		// Inserire pagina generica d'errore
+// 		return "";
+// 	}
+// }
 
 std::string ResponseHandler::getModifyPath(const std::string& requestPath, LocationPath& path) {
 	std::string modifiedPath = requestPath;
@@ -199,6 +197,7 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 
 	_path = responsePath;
 	// _fullPath = getcwd(cwd, sizeof(cwd)) + _path;
+	// std::cout << _fullPath << std::endl;
 }
 
 void ResponseHandler::sendResponse()
@@ -211,7 +210,6 @@ void ResponseHandler::sendResponse()
 	ss >> statuscode;
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
-	std::ifstream file(_path);
 	if (_path == "/") {
 		std::ifstream file(_server->getIndex());
 		// if (file.is_open()) {
@@ -223,8 +221,9 @@ void ResponseHandler::sendResponse()
 		// }
 	}
 	else {
-		char cwd[999];
-		std::ifstream file(getcwd(cwd, sizeof(cwd)) + _path);
+		// char cwd[999];
+		// std::ifstream file(getcwd(cwd, sizeof(cwd)) + _path);
+		std::ifstream file("." + _path);
 		// if (file.is_open()) {
 			std::stringstream buffer;
 			buffer << file.rdbuf();
@@ -242,10 +241,11 @@ void ResponseHandler::setContent()
 	if (_path == "/")
 		file.open(_server->getIndex());
 	else
-		file.open(_fullPath);
+		file.open("." + _path);
 	struct stat s;
+	std::string fullPath = "." + _path;
 	std::string _content;
-	if (_path != "/" && stat(_fullPath.c_str(), &s) == -1) // file doesn't exist
+	if (_path != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
 	{
 		file.close();
 		setStatusCode("404");
@@ -339,8 +339,8 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 void ResponseHandler::setEnv() {
 	std::map<std::string, std::string>	headers = _headers;
 	std::map<std::string, std::string>	env;
-	char cwd[9999];
-	getcwd(cwd, sizeof(cwd));
+	// char cwd[9999];
+	// getcwd(cwd, sizeof(cwd));
 
 	env["REDIRECT_STATUS"] = "200";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
