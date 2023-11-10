@@ -258,8 +258,6 @@ void ResponseHandler::setContent()
 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
 			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
 		else type = "";
-		std::cout << "type: " << type << std::endl;
-
 		if (_request && _request->getMethod() == "DELETE")
 		{
 			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
@@ -272,7 +270,6 @@ void ResponseHandler::setContent()
 		}
 		else if (type == ".py") // file has to go through cgi
 		{
-			std::cout << "DEBOIA" << std::endl;
 			std::string cgi = _server->getMap().find("python")->second;
 			int delimiter = cgi.find(' ');
 			cgi = cgi.substr(delimiter + 1, cgi.size() - delimiter - 1);
