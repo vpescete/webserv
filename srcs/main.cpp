@@ -80,11 +80,9 @@ int	main(int ac, char *av[]) {
 					if (bytesRead > 0) {
 						bufferStr.append(buff, bytesRead);
 					}
-					// usleep(100);
+					usleep(100);
 				} while (bytesRead > 0);
 				req.parsereq(bufferStr);
-				// std::cout << BLUE << req.getPath() << RESET << std::endl << RED << bufferStr << RESET << std::endl;;
-				//std::cout << GREEN << "[DEBUG] " << index << RESET << std::endl;
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
 				std::ifstream fdopenFile((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK);
 				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (!fdopenFile.is_open())) {
@@ -95,14 +93,14 @@ int	main(int ac, char *av[]) {
 					}
 					client.closeClientConnection(events[i].ident);
 					fdopenFile.close();
-					// usleep(100);
+					usleep(100);
 					// close(events[i].ident);
 					break;
 				}
 				fdopenFile.close();
 				req.setResponse(srvs[index], events[i].ident);
 				client.closeClientConnection(events[i].ident);
-				// usleep(100);
+				usleep(100);
 				// close(events[i].ident);
 			}
 		}

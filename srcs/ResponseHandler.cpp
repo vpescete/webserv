@@ -209,7 +209,7 @@ void ResponseHandler::sendResponse()
 
 	ss << status;
 	ss >> statuscode;
-	std::string::size_type i = 0, j = 0;
+	// std::string::size_type i = 0, j = 0;
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
 	if (_path == "/") {
@@ -227,18 +227,20 @@ void ResponseHandler::sendResponse()
 		// std::ifstream file(getcwd(cwd, sizeof(cwd)) + _path);
 		std::ifstream file("." + _path);
 		// if (file.is_open()) {
-			std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string content = buffer.str();
-			std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			while(i < response.length()) {
-				j = i;
-				i += send(_clientSocket, response.c_str(), response.length(), 0);
-				std::cout << i << "     " << j << "        "<< response.length() << std::endl;
-				if (j == i + 1)
-					break;
-			}
-		// }
+		std::stringstream buffer;
+		buffer << file.rdbuf();
+		// std::cout << buffer << std::endl;
+		std::string content = buffer.str();
+		std::string temp;
+		int dataSent = 0;
+		std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		do {
+			temp = response.substr(0, 35000);
+			dataSent = send(_clientSocket, temp.c_str(), temp.length(), 0);
+			if (dataSent < 0)
+				break ;
+			response = response.substr(dataSent);
+		} while (response.size());
 	}
 }
 
