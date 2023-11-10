@@ -48,6 +48,7 @@ void Server::SocketException() {
 }
 
 void Server::serverConnection(int kQueue) {
+	(void)kQueue;
 	_socketFD = socket(AF_INET, SOCK_STREAM, 0);
 	this->SocketException();
 	_serverAddress.sin_family = AF_INET;

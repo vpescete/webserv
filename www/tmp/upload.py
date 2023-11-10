@@ -18,10 +18,10 @@ if os.environ['REQUEST_METHOD'] == 'GET':
     print('</html>')
 elif os.environ['REQUEST_METHOD'] == 'POST':
     # If the request method is POST, read the uploaded file from the request body and save it to a file on the server
-fileitem = form['file']
+    fileitem = form['file']
 if fileitem.filename:
 	filename = os.path.basename(fileitem.filename)
-	with open(f'/path/to/uploads/{filename}', 'wb') as f:
+	with open(f'/uploads/{filename}', 'wb') as f:
 		f.write(fileitem.file.read())
 	message = 'Upload successful'
 else:
@@ -31,9 +31,9 @@ else:
 print('Content-Type: text/html')
 print()
 print('<html>')
-print "<head>"
-print "<title>CGI UPLOAD FORM</title>"
-print "</head>"
+print( "<head>")
+print("<title>CGI UPLOAD FORM</title>")
+print("</head>")
 print('<body>')
 print(f'<p>{message}</p>')
 print('</body>')
