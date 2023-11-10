@@ -42,12 +42,12 @@ std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuratio
 
 int	main(int ac, char *av[]) {
 
-	if (ac != 2) {
+	if (ac > 2) {
 		std::cout << RED << "ERROR: wrong number of arguments" << RESET <<std::endl;
 		return EXIT_FAILURE;
 	}
 	signal(SIGINT, signal_handler);
-	ParserConf confFile(av[1]);
+	ParserConf confFile(ac == 1 ? DEFAULT_PATH : av[1]);
 
 	std::vector<Server *> srvs;
 	srvs = startServer(confFile.getMapConfig());
