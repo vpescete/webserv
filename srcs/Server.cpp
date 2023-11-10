@@ -129,3 +129,7 @@ void Server::_setMap() {
 std::map<std::string, LocationPath> Server::getLocationPathMap() {
 	return _locationPathMap;
 }
+
+std::map<std::string, std::string> Server::getMap() {
+	return _map;
+}

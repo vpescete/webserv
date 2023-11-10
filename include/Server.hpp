@@ -45,6 +45,7 @@ class Server {
 		struct kevent*	getKevent();
 		std::string		getIndex();
 		std::map<std::string, LocationPath> getLocationPathMap();
+		std::map<std::string, std::string> getMap();
 };
 
 #endif

@@ -57,7 +57,8 @@ void ResponseHandler::handleCGI(const std::string& scriptPath) {
 		close(pipefd[1]);  // Close write end of the pipe
 
 		// Execute the CGI script
-		execl(scriptPath.c_str(), scriptPath.c_str(), (char*)NULL);
+		const char *pyArgs[] = {scriptPath.c_str(), _path.c_str(), NULL};
+		execve(scriptPath.c_str(), const_cast<char **> (pyArgs), _env);
 		exit(EXIT_FAILURE);
 	} else {  // This is the parent process
 		close(pipefd[1]);  // Close write end of the pipe
@@ -255,8 +256,10 @@ void ResponseHandler::setContent()
 		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
 		std::string type; // extension of the response file
 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
-			_path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
+			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
 		else type = "";
+		std::cout << "type: " << type << std::endl;
+
 		if (_request && _request->getMethod() == "DELETE")
 		{
 			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
@@ -267,15 +270,18 @@ void ResponseHandler::setContent()
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
 		}
-		// else if (type == "py") // file has to go through cgi
-		// {
-		// 	handleCGI(_path);
-		// }
-		// else // file is probably an html
-		// {
-		// 	int fileLen;
-		// 	std::string tmp = std::string("\r\n");
-
+		else if (type == ".py") // file has to go through cgi
+		{
+			std::cout << "DEBOIA" << std::endl;
+			std::string cgi = _server->getMap().find("python")->second;
+			int delimiter = cgi.find(' ');
+			cgi = cgi.substr(delimiter + 1, cgi.size() - delimiter - 1);
+			handleCGI(cgi);
+		}
+		//else // is probably an html
+		//{
+		//		int fileLen;
+		//	std::string tmp = std::string("\r\n");
 		// 	file.seekg(0, std::ios::end); // move the file iter to the end of the file
 		// 	fileLen = file.tellg();
 		// 	if (fileLen != -1)
@@ -320,7 +326,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	else
 		type = "";
 	// pretty self-explicatory from this point onwards
-	if ((type == "html") || _request->getMethod() == "DELETE") // maybe cgi???
+	if ((type == "html") || type == "py" || _request->getMethod() == "DELETE")
 		_contentType = "text/html";
 	else if (type == "css")
 		_contentType = "text/css";
