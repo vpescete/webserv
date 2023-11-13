@@ -22,18 +22,18 @@ class ResponseHandler
 		void setDefaultHeaders();
 		void setStatusCodeMap();
 		void setPath(const std::string& requestPath, const std::string& requestMethod);
-		void setContent();
+		void setContent(std::string pwd);
 		void setContentType(std::string path, std::string type = "");
-		void setEnv();
+		void setEnv(std::string envpwd);
 		void setStatusCode(const std::string& code);
 		void setCookies(const std::string& name, const std::string& value);
 		void setContentLenght(const std::string& content);
 		void setConnection(const std::string& connection);
 		bool isDirectory(const std::string& path);
-		void handleCGI(const std::string& scriptPath);
+		void handleCGI(const std::string& scriptPath, std::string envpath);
 
 	public:
-		ResponseHandler(Server *_server, RequestHandler *_request, int _cs);
+		ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd);
 		~ResponseHandler();
 		std::string makeResponse() const;
 		std::string getResponseCode(int code) const;

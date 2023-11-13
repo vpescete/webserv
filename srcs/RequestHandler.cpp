@@ -170,8 +170,8 @@ std::string RequestHandler::getProtocol() {
 }
 
 
-void	RequestHandler::setResponse(Server* svr, int clientSocket) {
-	ResponseHandler res = ResponseHandler(svr, this, clientSocket);
+void	RequestHandler::setResponse(Server* svr, int clientSocket, std::string pwd) {
+	ResponseHandler res = ResponseHandler(svr, this, clientSocket, pwd);
 	// if (_path == "/") {
 	// 	std::ifstream file(svr->getIndex());
 	// 	if (file.is_open()) {

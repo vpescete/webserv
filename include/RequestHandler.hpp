@@ -22,7 +22,7 @@ class RequestHandler {
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
-		void setResponse(Server* svr, int clientSocket);
+		void setResponse(Server* svr, int clientSocket, std::string pwd);
 		bool autoIndex(int clientSocket);
 		std::string get_deleteMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value);
 		void postMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value, const char* headerEnd);

@@ -40,7 +40,7 @@ std::vector<Server *>	startServer(std::map<std::string, std::vector<Configuratio
 	return srvs;
 }
 
-int	main(int ac, char *av[]) {
+int	main(int ac, char *av[], char **env) {
 
 	if (ac > 2) {
 		std::cout << RED << "ERROR: wrong number of arguments" << RESET <<std::endl;
@@ -48,7 +48,19 @@ int	main(int ac, char *av[]) {
 	}
 	signal(SIGINT, signal_handler);
 	ParserConf confFile(ac == 1 ? DEFAULT_PATH : av[1]);
-
+	int l = 0;
+	int pos = 0;
+	std::string tmp, pwd;
+	while(env[l]) {
+		if (env[l][0] == 'P' && env[l][1] == 'W' && env[l][2] == 'D' && env[l][3] == '=') {
+			while (env[l][pos] != '\0')
+				pos++;
+			break ;
+		}
+		l++;
+	}
+	tmp = env[l];
+	pwd = tmp.substr(4, pos - 4);
 	std::vector<Server *> srvs;
 	srvs = startServer(confFile.getMapConfig());
 	RequestHandler req;
@@ -56,7 +68,6 @@ int	main(int ac, char *av[]) {
 	struct kevent events[MAXEVENTS];
 	ssize_t addrlen = sizeof(sockaddr);
 	int connect;
-
 	while (running) {
 		errno = 0;
 		std::string bufferStr;
@@ -89,7 +100,7 @@ int	main(int ac, char *av[]) {
 					if (!fdopenFile.is_open()) {
 						//std::cout << (*srvs[index]).getIndex() << std::endl;
 						req.autoIndex(events[i].ident);
-						req.setResponse(srvs[index], events[i].ident);
+						req.setResponse(srvs[index], events[i].ident, pwd);
 					}
 					client.closeClientConnection(events[i].ident);
 					fdopenFile.close();
@@ -98,7 +109,7 @@ int	main(int ac, char *av[]) {
 					break;
 				}
 				fdopenFile.close();
-				req.setResponse(srvs[index], events[i].ident);
+				req.setResponse(srvs[index], events[i].ident, pwd);
 				client.closeClientConnection(events[i].ident);
 				usleep(100);
 				// close(events[i].ident);

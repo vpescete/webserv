@@ -53,7 +53,7 @@ void	Configuration::_confSplitter(std::string configString) {
 			configString.substr(start + 1, end - 1)));
 	// std::map<std::string, std::string>::iterator it = _map.begin();
 	// for (; it != _map.end(); ++it) {
-	// 	std::cout << (*it).first()
+	// 	std::cout << it->first << "------" << it->second << std::endl;
 	// }
 }
 

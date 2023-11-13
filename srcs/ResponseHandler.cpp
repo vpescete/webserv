@@ -1,14 +1,16 @@
 #include "ResponseHandler.hpp"
 
-ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs)
+ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd)
 	: _server(_server), _request(_request), _clientSocket(_cs)
 {
+	_env = (char**)malloc(sizeof(char*) * 2);
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
 	_postQuestionMark = "";
 	setContentType(_path);
-	setContent();
+	setContent(pwd);
+	free(_env);
 }
 
 ResponseHandler::~ResponseHandler()
@@ -30,12 +32,14 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
-void ResponseHandler::handleCGI(const std::string& scriptPath) {
+void ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
 	int pipefd[2];
 	pid_t pid;
 	char buf;
 	std::string output;
+	std::string buffer = envpath + _path;
 
+	std::cout << scriptPath << "------" << buffer << std::endl;
 	// Create a pipe
 	if (pipe(pipefd) == -1) {
 		perror("pipe");
@@ -57,7 +61,7 @@ void ResponseHandler::handleCGI(const std::string& scriptPath) {
 		close(pipefd[1]);  // Close write end of the pipe
 
 		// Execute the CGI script
-		const char *pyArgs[] = {scriptPath.c_str(), _path.c_str(), NULL};
+		const char *pyArgs[] = {scriptPath.c_str(), buffer.c_str(), NULL};
 		execve(scriptPath.c_str(), const_cast<char **> (pyArgs), _env);
 		exit(EXIT_FAILURE);
 	} else {  // This is the parent process
@@ -244,7 +248,7 @@ void ResponseHandler::sendResponse()
 	}
 }
 
-void ResponseHandler::setContent()
+void ResponseHandler::setContent(std::string pwd)
 {
 	std::ifstream file;
 	std::string preQuestion;
@@ -286,10 +290,11 @@ void ResponseHandler::setContent()
 		}
 		else if (type == ".py") // file has to go through cgi
 		{
-			std::string cgi = _server->getMap().find("python")->second;
-			int delimiter = cgi.find(' ');
-			cgi = cgi.substr(delimiter + 1, cgi.size() - delimiter - 1);
-			handleCGI(cgi);
+			std::string location = _server->getMap().find("location")->second;
+			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
+			std::string final_cgi =  cgi.substr(cgi.find("/"), cgi.length());
+			setEnv(pwd);
+			handleCGI(final_cgi, pwd);
 		}
 		//else // is probably an html
 		//{
@@ -355,38 +360,41 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "text/plain";
 }
 
-void ResponseHandler::setEnv() {
+void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	headers = _headers;
 	std::map<std::string, std::string>	env;
 	// char cwd[9999];
 	// getcwd(cwd, sizeof(cwd));
-
-	env["REDIRECT_STATUS"] = "200";
-	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["SCRIPT_NAME"] = _path;
-	env["SCRIPT_FILENAME"] = _path;
+	int i=0;
 	env["REQUEST_METHOD"] = _request->getMethod();
-	env["CONTENT_LENGTH"] = headers["Content-Length"];
-	env["CONTENT_TYPE"] = headers["Content-Type"];
-	env["PATH_INFO"] = _path;
-	env["PATH_TRANSLATED"] =_path;
-	env["QUERY_STRING"] = _path;
-	env["REMOTEaddr"] = _server->getHost();
-	env["UPLOAD_PATH"] = "/upload";
-	if (headers.find("Hostname") != headers.end())
-		env["SERVER_NAME"] = headers["Hostname"];
-	else
-		env["SERVER_NAME"] = env["REMOTEaddr"];
-	env["SERVER_PORT"] = std::to_string(_server->getPort());
-	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_SOFTWARE"] = "Webserv/1.0";
-	env["HTTP_COOKIE"] = headers["Cookie"];
+	env["PWD"] = envpwd;
+	// env["REDIRECT_STATUS"] = "200";
+	// env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	// env["SCRIPT_NAME"] = _path;
+	// env["SCRIPT_FILENAME"] = _path;
+	// env["CONTENT_LENGTH"] = headers["Content-Length"];
+	// env["CONTENT_TYPE"] = headers["Content-Type"];
+	// env["PATH_INFO"] = _path;
+	// env["PATH_TRANSLATED"] =_path;
+	// env["QUERY_STRING"] = _path;
+	// env["REMOTEaddr"] = _server->getHost();
+	// env["UPLOAD_PATH"] = "/upload";
+	// if (headers.find("Hostname") != headers.end())
+	// 	env["SERVER_NAME"] = headers["Hostname"];
+	// else
+	// 	env["SERVER_NAME"] = env["REMOTEaddr"];
+	// env["SERVER_PORT"] = std::to_string(_server->getPort());
+	// env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	// env["SERVER_SOFTWARE"] = "Webserv/1.0";
+	// env["HTTP_COOKIE"] = headers["Cookie"];
 
-	_env = new char*[env.size() + 1];
-	int i = 0;
-	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); ++it)
+	std::string tmp;
+	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); it++)
 	{
-		std::string tmp = it->first + "=" + it->second;
+		if (it == env.begin())
+			tmp = it->first + "=" + it->second + _path;
+		else
+			tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
 		std::strcpy(_env[i], tmp.c_str());
 		++i;
