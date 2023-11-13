@@ -36,10 +36,9 @@ void ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpa
 	int pipefd[2];
 	pid_t pid;
 	char buf;
-	std::string output;
-	std::string buffer = envpath + _path;
+	std::string absolutPath = envpath + _path;
 
-	std::cout << scriptPath << "------" << buffer << std::endl;
+	std::cout << scriptPath << "------" << absolutPath << std::endl;
 	// Create a pipe
 	if (pipe(pipefd) == -1) {
 		perror("pipe");
@@ -58,23 +57,26 @@ void ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpa
 
 		// Redirect stdout to the write end of the pipe
 		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[1]);  // Close write end of the pipe
+		close(pipefd[0]);  // Close write end of the pipe
 
 		// Execute the CGI script
-		const char *pyArgs[] = {scriptPath.c_str(), buffer.c_str(), NULL};
+		const char *pyArgs[] = {scriptPath.c_str(), absolutPath.c_str(), NULL};
 		execve(scriptPath.c_str(), const_cast<char **> (pyArgs), _env);
+		std::cout << "DEBUG EXIT FAILURE" << std::endl;
 		exit(EXIT_FAILURE);
 	} else {  // This is the parent process
-		close(pipefd[1]);  // Close write end of the pipe
 
+		close(pipefd[1]);  // Close write end of the pipe
+		std::cout << "toccah" << std::endl;
 		// Read the output of the CGI script from the pipe and add it to the response content
 		while (read(pipefd[0], &buf, 1) > 0) {
 			_content += buf;
 		}
 		close(pipefd[0]);  // Close read end of the pipe
-
+		std::cout << "boia" << std::endl;
 		// Wait for the child process to finish
 		wait(NULL);
+		std::cout << "deh" << std::endl;
 	}
 }
 

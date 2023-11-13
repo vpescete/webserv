@@ -21,7 +21,7 @@ elif os.environ['REQUEST_METHOD'] == 'POST':
     fileitem = form['file']
 if fileitem.filename:
 	filename = os.path.basename(fileitem.filename)
-	with open(f'/uploads/{filename}', 'wb') as f:
+	with open('/uploads/{}'.format(filename), 'wb') as f:
 		f.write(fileitem.file.read())
 	message = 'Upload successful'
 else:
