@@ -30,7 +30,7 @@ class ResponseHandler
 		void setContentLenght(const std::string& content);
 		void setConnection(const std::string& connection);
 		bool isDirectory(const std::string& path);
-		void handleCGI(const std::string& scriptPath, std::string envpath);
+		std::string handleCGI(const std::string& scriptPath, std::string envpath);
 
 	public:
 		ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd);

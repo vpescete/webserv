@@ -169,6 +169,11 @@ std::string RequestHandler::getProtocol() {
 	return (_protocol);
 }
 
+std::string RequestHandler::getBody()
+{
+	return (_bodyEnd);
+}
+
 
 void	RequestHandler::setResponse(Server* svr, int clientSocket, std::string pwd) {
 	ResponseHandler res = ResponseHandler(svr, this, clientSocket, pwd);
@@ -250,27 +255,6 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 			break;
 	}
 	return true;
-}
-
-std::string RequestHandler::getCookies(const std::string& name)
-{
-	if (_mapHeader.find("Cookie") != _mapHeader.end())
-	{
-		std::string cookies = _mapHeader["Cookie"];
-		std::stringstream ss(cookies);
-		std::string token;
-
-		while (std::getline(ss, token, ';'))
-		{
-			token = trim(token);
-			size_t pos = token.find('=');
-			if (pos != std::string::npos && token.substr(0, pos) == name)
-			{
-				return token.substr(pos + 1);
-			}
-		}
-	}
-	return "";
 }
 
 std::string RequestHandler::extractPath(const std::string& requestLine) {

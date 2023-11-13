@@ -32,19 +32,23 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
-void ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
-	int pipefd[2];
+std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
+	std::string newBody;	
 	pid_t pid;
-	char buf;
 	std::string absolutPath = envpath + _path;
 
-	std::cout << scriptPath << "------" << absolutPath << std::endl;
-	// Create a pipe
-	if (pipe(pipefd) == -1) {
-		perror("pipe");
-		exit(EXIT_FAILURE);
-	}
+	int saveStdin = dup(STDIN_FILENO);
+	int saveStdout = dup(STDOUT_FILENO);
 
+	FILE* fileIn = tmpfile();
+	FILE* fileOut = tmpfile();
+	int fdIn = fileno(fileIn);
+	int fdOut = fileno(fileOut);
+
+	int		ret = 1;
+	write(fdIn, _request->getBody().c_str(), _request->getBody().size());
+	// std::cout << _request->getBody() << std::endl;
+	lseek(fdIn, 0, SEEK_SET);
 	// Fork a new process
 	pid = fork();
 	if (pid == -1) {
@@ -53,31 +57,46 @@ void ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpa
 	}
 
 	if (pid == 0) {    // This is the child process
-		close(pipefd[0]);  // Close read end of the pipe
 
-		// Redirect stdout to the write end of the pipe
-		dup2(pipefd[1], STDOUT_FILENO);
-		close(pipefd[0]);  // Close write end of the pipe
-
+		dup2(fdIn, STDIN_FILENO);
+		dup2(fdOut, STDOUT_FILENO);
 		// Execute the CGI script
 		const char *pyArgs[] = {scriptPath.c_str(), absolutPath.c_str(), NULL};
 		execve(scriptPath.c_str(), const_cast<char **> (pyArgs), _env);
 		std::cout << "DEBUG EXIT FAILURE" << std::endl;
 		exit(EXIT_FAILURE);
-	} else {  // This is the parent process
-
-		close(pipefd[1]);  // Close write end of the pipe
-		std::cout << "toccah" << std::endl;
-		// Read the output of the CGI script from the pipe and add it to the response content
-		while (read(pipefd[0], &buf, 1) > 0) {
-			_content += buf;
-		}
-		close(pipefd[0]);  // Close read end of the pipe
-		std::cout << "boia" << std::endl;
-		// Wait for the child process to finish
-		wait(NULL);
-		std::cout << "deh" << std::endl;
 	}
+	else
+	{
+		char	buffer[65536] = {0};
+		while (waitpid(-1, NULL, 2) != -1) ;
+		lseek(fdOut, 0, SEEK_SET);
+		while (ret > 0)
+		{
+			memset(buffer, 0, 65536);
+			ret = read(fdOut, buffer, 65536 - 1);
+			newBody += buffer;
+		}
+	}
+
+	dup2(saveStdin, STDIN_FILENO);
+	dup2(saveStdout, STDOUT_FILENO);
+	fclose(fileIn);
+	fclose(fileOut);
+	close(fdIn);
+	close(fdOut);
+	close(saveStdin);
+	close(saveStdout);
+	//for (size_t i = 0; env[i]; i++)
+	//	delete[] env[i];
+	//delete[] env;
+
+	if (!pid)
+		exit(0);
+	std::cout << "PORCMADONNA" << std::endl;
+	std::cout << newBody << std::endl;
+	std::cout << "PORCODDIO" << std::endl;
+	return newBody;
 }
 
 #pragma region GET
@@ -296,7 +315,10 @@ void ResponseHandler::setContent(std::string pwd)
 			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
 			std::string final_cgi =  cgi.substr(cgi.find("/"), cgi.length());
 			setEnv(pwd);
-			handleCGI(final_cgi, pwd);
+			_content = handleCGI(final_cgi, pwd);
+			std::stringstream ss;
+			ss << (_content.size() - 2);
+			setContentLenght(ss.str());
 		}
 		//else // is probably an html
 		//{
@@ -348,6 +370,8 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	// pretty self-explicatory from this point onwards
 	if ((type == "html") || type == "py" || _request->getMethod() == "DELETE")
 		_contentType = "text/html";
+	else if (type == "py")
+		_contentType = "multipart/form-data";
 	else if (type == "css")
 		_contentType = "text/css";
 	else if (type == "js")

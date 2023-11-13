@@ -20,6 +20,15 @@
 <br><br><br>
 
 <form action="./upload.py" method="POST" enctype="multipart/form-data">
-  <input type="file" name="image">
+  <input type="file" name="image"  id="upload">
   <button type="submit">Upload</button>
 </form>
+
+<script>
+  const inp = document.querySelector("#upload")
+  console.log(inp)
+  inp.addEventListener('change', (e)=>prova(e))
+  const prova = (e) => {
+    console.log("uuuu",e.target.files[0])
+  }
+</script>
