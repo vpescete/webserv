@@ -17,6 +17,7 @@ class ResponseHandler
 		std::string _path;
 		std::string _fullPath;
 		std::string _content;
+		std::string _postQuestionMark;
 		int _clientSocket;
 		void setDefaultHeaders();
 		void setStatusCodeMap();

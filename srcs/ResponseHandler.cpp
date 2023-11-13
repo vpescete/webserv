@@ -6,7 +6,7 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int 
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
-
+	_postQuestionMark = "";
 	setContentType(_path);
 	setContent();
 }
@@ -247,11 +247,18 @@ void ResponseHandler::sendResponse()
 void ResponseHandler::setContent()
 {
 	std::ifstream file;
-
+	std::string preQuestion;
+	size_t questPosition = _path.rfind('?');
 	if (_path == "/")
 		file.open(_server->getIndex());
-	else
+	else if (questPosition == std::string::npos)
 		file.open("." + _path);
+	else {
+		_postQuestionMark = _path.substr(questPosition + 1, _path.length() - questPosition);
+		preQuestion = _path.substr(0, questPosition);
+		file.open("." + preQuestion);
+		_path = preQuestion;
+	}
 	struct stat s;
 	std::string fullPath = "." + _path;
 	std::string _content;
