@@ -3,14 +3,12 @@
 ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd)
 	: _server(_server), _request(_request), _clientSocket(_cs)
 {
-	_env = (char**)malloc(sizeof(char*) * 2);
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
 	_postQuestionMark = "";
 	setContentType(_path);
 	setContent(pwd);
-	free(_env);
 }
 
 ResponseHandler::~ResponseHandler()
@@ -63,7 +61,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		extern char** environ;
 		// char** env = environ;
 		// for (; *env != nullptr; ++env) {
 		// 	std::cout << CYAN << *env <<  RESET << std::endl;
@@ -76,11 +73,12 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		// Execute the CGI script
 		// extern char** environ;  // Dichiarato all'inizio del tuo codice
 		// execve(scriptPath.c_str(), const_cast<char **>(pyArgs), environ);
+		std::cout << absolutPath << std::endl;
 		const char *pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
 		// for (int i = 0; pyArgs[i]; i++)
 		// 	std::cout << "\t" <<pyArgs[i] << std::endl;
 		execve("/usr/local/bin/python3", const_cast<char **> (pyArgs), _env);
-		perror("Error");
+		// perror("Error");
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -121,11 +119,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 std::string ResponseHandler::getPath() const
 {
 	return _path;
-}
-
-std::string ResponseHandler::getContent() const
-{
-	return _headers.at("Content");
 }
 
 std::string ResponseHandler::getContentType() const
@@ -337,6 +330,7 @@ void ResponseHandler::setContent(std::string pwd)
 			std::stringstream ss;
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
+			free(_env);
 		}
 		//else // is probably an html
 		//{
@@ -386,7 +380,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	else
 		type = "";
 	// pretty self-explicatory from this point onwards
-	if ((type == "html") || type == "py" || _request->getMethod() == "DELETE")
+	if ((type == "html") || _request->getMethod() == "DELETE")
 		_contentType = "text/html";
 	else if (type == "py")
 		_contentType = "multipart/form-data";
@@ -402,6 +396,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
+	_headers["Content-Type"] = _contentType;
 }
 
 void ResponseHandler::setEnv(std::string envpwd) {
@@ -422,7 +417,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["PATH_TRANSLATED"] =_path;
 	env["QUERY_STRING"] = _path;
 	env["REMOTEaddr"] = _server->getHost();
-	env["UPLOAD_PATH"] = "/upload";
+	env["UPLOAD_PATH"] = envpwd + "/uploads";
 	if (headers.find("Hostname") != headers.end())
 		env["SERVER_NAME"] = headers["Hostname"];
 	else
@@ -433,12 +428,10 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["HTTP_COOKIE"] = headers["Cookie"];
 
 	std::string tmp;
+	_env = (char **)malloc(sizeof(char*)*env.size());
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); it++)
 	{
-		if (it == env.begin())
-			tmp = it->first + "=" + it->second + _path;
-		else
-			tmp = it->first + "=" + it->second;
+		tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
 		std::strcpy(_env[i], tmp.c_str());
 		std::cout << _env[i] << std::endl;
@@ -466,8 +459,6 @@ void ResponseHandler::setStatusCodeMap()
 void ResponseHandler::setDefaultHeaders()
 {
 	setStatusCode("200");
-	_headers["Path"] = "";
-	_headers["Content"] = "";
 	_headers["Content-Type"] = "text/html";
 	setContentLenght("0");
 	setConnection("keep-alive");
@@ -476,12 +467,6 @@ void ResponseHandler::setDefaultHeaders()
 void ResponseHandler::setStatusCode(const std::string& code)
 {
 	_headers["Status"] = code;
-}
-
-void ResponseHandler::setCookies(const std::string& name, const std::string& value)
-{
-	std::string cookie = name + "=" + value;
-	_headers["Set-Cookie"] = cookie;
 }
 
 void ResponseHandler::setContentLenght(const std::string& content)

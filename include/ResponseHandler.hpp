@@ -26,7 +26,6 @@ class ResponseHandler
 		void setContentType(std::string path, std::string type = "");
 		void setEnv(std::string envpwd);
 		void setStatusCode(const std::string& code);
-		void setCookies(const std::string& name, const std::string& value);
 		void setContentLenght(const std::string& content);
 		void setConnection(const std::string& connection);
 		bool isDirectory(const std::string& path);
@@ -39,7 +38,6 @@ class ResponseHandler
 		std::string getResponseCode(int code) const;
 		LocationPath getLocationPath(std::string path);
 		std::string getPath() const;
-		std::string getContent() const;
 		std::string getContentType() const;
 		std::string getContentLenght() const;
 		std::string getDate() const;
