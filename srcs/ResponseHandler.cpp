@@ -36,8 +36,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
 
-	std::cout << GREEN << envpath << RESET << std::endl;
-
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
 
