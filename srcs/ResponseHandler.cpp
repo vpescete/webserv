@@ -33,9 +33,12 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 }
 
 std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
+	(void)scriptPath;
 	std::string newBody;	
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
+
+	std::cout << GREEN << envpath << RESET << std::endl;
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
@@ -60,10 +63,25 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
+		extern char** environ;
+		// char** env = environ;
+		// for (; *env != nullptr; ++env) {
+		// 	std::cout << CYAN << *env <<  RESET << std::endl;
+		// }
+		// *env = _env[1];
+		// env++;
+		// *env = NULL;
+		// std::cout << "[DEBUGGGG]" <<  env[0] << std::endl;
+		// std::cout << "[DEBUGGGG]" <<  env[1] << std::endl;
 		// Execute the CGI script
-		const char *pyArgs[] = {scriptPath.c_str(), absolutPath.c_str(), NULL};
-		execve(scriptPath.c_str(), const_cast<char **> (pyArgs), _env);
-		std::cout << "DEBUG EXIT FAILURE" << std::endl;
+		// extern char** environ;  // Dichiarato all'inizio del tuo codice
+		// execve(scriptPath.c_str(), const_cast<char **>(pyArgs), environ);
+		const char *pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
+		// for (int i = 0; pyArgs[i]; i++)
+		// 	std::cout << "\t" <<pyArgs[i] << std::endl;
+		execve("/usr/local/bin/python3", const_cast<char **> (pyArgs), _env);
+		perror("Error");
+		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	else
@@ -93,9 +111,9 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	if (!pid)
 		exit(0);
-	std::cout << "PORCMADONNA" << std::endl;
+	// std::cout << "PORCMADONNA" << std::endl;
 	std::cout << newBody << std::endl;
-	std::cout << "PORCODDIO" << std::endl;
+	// std::cout << "PORCODDIO" << std::endl;
 	return newBody;
 }
 
@@ -394,25 +412,25 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	int i=0;
 	env["REQUEST_METHOD"] = _request->getMethod();
 	env["PWD"] = envpwd;
-	// env["REDIRECT_STATUS"] = "200";
-	// env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	// env["SCRIPT_NAME"] = _path;
-	// env["SCRIPT_FILENAME"] = _path;
-	// env["CONTENT_LENGTH"] = headers["Content-Length"];
-	// env["CONTENT_TYPE"] = headers["Content-Type"];
-	// env["PATH_INFO"] = _path;
-	// env["PATH_TRANSLATED"] =_path;
-	// env["QUERY_STRING"] = _path;
-	// env["REMOTEaddr"] = _server->getHost();
-	// env["UPLOAD_PATH"] = "/upload";
-	// if (headers.find("Hostname") != headers.end())
-	// 	env["SERVER_NAME"] = headers["Hostname"];
-	// else
-	// 	env["SERVER_NAME"] = env["REMOTEaddr"];
-	// env["SERVER_PORT"] = std::to_string(_server->getPort());
-	// env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	// env["SERVER_SOFTWARE"] = "Webserv/1.0";
-	// env["HTTP_COOKIE"] = headers["Cookie"];
+	env["REDIRECT_STATUS"] = "200";
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["SCRIPT_NAME"] = _path;
+	env["SCRIPT_FILENAME"] = _path;
+	env["CONTENT_LENGTH"] = headers["Content-Length"];
+	env["CONTENT_TYPE"] = headers["Content-Type"];
+	env["PATH_INFO"] = _path;
+	env["PATH_TRANSLATED"] =_path;
+	env["QUERY_STRING"] = _path;
+	env["REMOTEaddr"] = _server->getHost();
+	env["UPLOAD_PATH"] = "/upload";
+	if (headers.find("Hostname") != headers.end())
+		env["SERVER_NAME"] = headers["Hostname"];
+	else
+		env["SERVER_NAME"] = env["REMOTEaddr"];
+	env["SERVER_PORT"] = std::to_string(_server->getPort());
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = "Webserv/1.0";
+	env["HTTP_COOKIE"] = headers["Cookie"];
 
 	std::string tmp;
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); it++)
@@ -423,6 +441,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 			tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
 		std::strcpy(_env[i], tmp.c_str());
+		std::cout << _env[i] << std::endl;
 		++i;
 	}
 }

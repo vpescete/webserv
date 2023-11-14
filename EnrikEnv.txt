@@ -1,0 +1,20 @@
+CONTENT_LENGTH=0
+CONTENT_TYPE=multipart/form-data; boundary=----WebKitFormBoundary68tlfgl0mYNBVDVs
+GATEWAY_INTERFACE=CGI/1.1
+HTTP_COOKIE=
+PATH_INFO=www/tmp/upload.php
+PATH_TRANSLATED=www/tmp/upload.php
+QUERY_STRING=
+REDIRECT_STATUS=200
+REMOTE_IDENT=
+REMOTE_USER=
+REMOTEaddr=127.0.0.1
+REQUEST_METHOD=POST
+REQUEST_URI=www/tmp/upload.php
+SCRIPT_FILENAME=www/tmp/upload.php
+SCRIPT_NAME=www/tmp/upload.php
+SERVER_NAME=127.0.0.1
+SERVER_PORT=8000
+SERVER_PROTOCOL=HTTP/1.1
+SERVER_SOFTWARE=Webserv/1.0
+UPLOAD_PATH=/Users/vpescetelli/EnrikWebServer/uploads/

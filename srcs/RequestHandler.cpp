@@ -69,8 +69,10 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 		if (headerEnd[0] == '-') {
 			uploadNoImage(start, end, key, value, headerEnd);
 		}
-		else
+		else {
 			_bodyEnd = headerEnd;
+		}
+		// std::cout << GREEN << _bodyEnd << RESET << std::endl;
 	}
 }
 
