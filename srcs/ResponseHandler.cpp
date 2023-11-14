@@ -394,7 +394,8 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
-	_headers["Content-Type"] = _contentType;
+	if (_request->getBool() == true)
+		_headers["Content-Type"] = _request->getHeaders().at("Content-Type");
 }
 
 void ResponseHandler::setEnv(std::string envpwd) {

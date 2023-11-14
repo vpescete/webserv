@@ -21,6 +21,13 @@ RequestHandler::RequestHandler(){}
 
 RequestHandler::~RequestHandler(){}
 
+std::string RequestHandler::getTrueBody() {
+	return _body;
+}
+
+bool RequestHandler::getBool() {
+	return _flag;
+}
 
 std::string RequestHandler::getMethod() {
 	return (_method);
@@ -37,6 +44,8 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
+				if (key == "Content-Type")
+					_flag = true;
 				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
@@ -62,14 +71,16 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
 		if (headerEnd[0] == '-') {
+			std::cout << "noImage" << std::endl;
 			uploadNoImage(start, end, key, value, headerEnd);
 		}
 		else {
+			std::cout << "bodyEnd = ";
 			_bodyEnd = headerEnd;
 		}
 		// std::cout << GREEN << _bodyEnd << RESET << std::endl;
@@ -78,41 +89,60 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 
 void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
 	int j = 0;
-	std::string bodyStart = headerEnd + 4;
+	// int k = 0;
+	std::string bodyStart = headerEnd + 2;
+	bool flag = false;
 	if (bodyStart.length() > 0) {
-		while(bodyStart[j] != '\n' && bodyStart[j] != '\0')
+		while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
 			j++;
 		_bodyStart = bodyStart.substr(0, j);
 		end = 0;
 		bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
 		while (end < bodyStart.size())
 		{
+			std::cout << "HEY" << std::endl;
 			start = bodyStart.find(':', 0);
 			end = bodyStart.find('\n', 0);
-			if (bodyStart[0] == '\r')
+			if (bodyStart[0] == '\r' && bodyStart[1] == '\n' && bodyStart[2] == '\r')
 				break;
-			if(end != std::string::npos) {
+			std::cout << BLUE << start << "----" << end << RESET << std::endl; 
+			if(end != std::string::npos && start < end) {
+				std::cout << "AHAHAH" << std::endl;
 				key = bodyStart.substr(0, start);
 				value = bodyStart.substr(start + 2, end - start - 2);
 				removeWhitespace(key);
 				removeWhitespace(value);
 				_mapBody.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+			}
+			else {
+				std::cout << "ciao" << std::endl;
+				_body = bodyStart.substr(2, bodyStart.length());
+				bodyStart = bodyStart.substr(0, _body.length());
+				flag = true;
+				break ;
 			}
 			bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
 		}
 	j = 0;
-	while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
-		j++;
-	bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
-	_bodyEnd = bodyStart;
+	if (flag == false) {
+		while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
+			j++;
+		bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
+		_bodyEnd = bodyStart;
+		}
 	}
+	else {
+		std::cout << YELLOW << _body << RESET << std::endl;
+		std::cout << "AAAA:  " << _body.substr(_body.find("------WebKitFormBoundary"), _body.length() - _body.find("------WebKitFormBoundary")) << std::endl;
+	}
+	std::cout << YELLOW << _bodyEnd << RESET << std::endl;
 }
 
 void	RequestHandler::parsereq(std::string buffer) {
 	unsigned long i = 0;
 	std::string temp;
-	//std::cout << RED << buffer << RESET << std::endl;
+	std::cout << RED << buffer << RESET << std::endl;
 	while (buffer[i] != '\n' && i < buffer.length()) {
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
@@ -169,6 +199,10 @@ std::string RequestHandler::getPath() {
 
 std::string RequestHandler::getProtocol() {
 	return (_protocol);
+}
+
+std::map<std::string, std::string> RequestHandler::getHeaders() {
+	return (_mapHeader);
 }
 
 std::string RequestHandler::getBody()
