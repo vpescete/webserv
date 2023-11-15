@@ -24,7 +24,6 @@ class RequestHandler {
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
-		std::string getBody();
 		std::map<std::string, std::string> getHeaders();
 		void setResponse(Server* svr, int clientSocket, std::string pwd);
 		bool autoIndex(int clientSocket);

@@ -32,7 +32,7 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 
 std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
 	(void)scriptPath;
-	std::string newBody;	
+	std::string newBody;
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
 
@@ -45,8 +45,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	int fdOut = fileno(fileOut);
 
 	int		ret = 1;
-	write(fdIn, _request->getBody().c_str(), _request->getBody().size());
-	// std::cout << _request->getBody() << std::endl;
+	std::cout << "diopover" << _request->getTrueBody() << std::endl;
+	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	lseek(fdIn, 0, SEEK_SET);
 	// Fork a new process
 	pid = fork();
@@ -77,6 +77,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		// 	std::cout << "\t" <<pyArgs[i] << std::endl;
 		execve("/usr/local/bin/python3", const_cast<char **> (pyArgs), _env);
 		// perror("Error");
+		std::cout <<
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -433,7 +434,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 		tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
 		std::strcpy(_env[i], tmp.c_str());
-		std::cout << _env[i] << std::endl;
+		//std::cout << _env[i] << std::endl;
 		++i;
 	}
 }

@@ -82,8 +82,8 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 			uploadNoImage(start, end, key, value, headerEnd);
 		}
 		else {
-			std::cout << "bodyEnd = ";
-			_bodyEnd = headerEnd;
+			_body = headerEnd;
+			_mapHeader.insert(std::pair<std::string, std::string>("Body", _body));
 		}
 		// std::cout << GREEN << _bodyEnd << RESET << std::endl;
 	}
@@ -100,10 +100,11 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	(void)value;
 	if (bodyStart.length() > 0) {
 		_mapHeader.insert(std::pair<std::string, std::string>("Body", bodyStart));
+		_body = bodyStart;
 	}
 	std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;
 }
-	// 	while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
+	// 	while(bodyStart[j] != '\n' && bodyStart[j] != '\0')
 	// 		j++;
 	// 	_bodyStart = bodyStart.substr(0, j);
 	// 	end = 0;
@@ -115,7 +116,7 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	// 		end = bodyStart.find('\n', 0);
 	// 		if (bodyStart[0] == '\r' && bodyStart[1] == '\n' && bodyStart[2] == '\r')
 	// 			break;
-	// 		std::cout << BLUE << start << "----" << end << RESET << std::endl; 
+	// 		std::cout << BLUE << start << "----" << end << RESET << std::endl;
 	// 		if(end != std::string::npos && start < end) {
 	// 			std::cout << "AHAHAH" << std::endl;
 	// 			key = bodyStart.substr(0, start);
@@ -213,11 +214,6 @@ std::string RequestHandler::getProtocol() {
 
 std::map<std::string, std::string> RequestHandler::getHeaders() {
 	return (_mapHeader);
-}
-
-std::string RequestHandler::getBody()
-{
-	return (_bodyEnd);
 }
 
 
