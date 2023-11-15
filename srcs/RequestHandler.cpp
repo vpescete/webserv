@@ -41,12 +41,12 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 			if(end != std::string::npos) {
 				key = temp2.substr(0, start);
 				value = temp2.substr(start + 1, end - start - 2);
-				removeWhitespace(key);
-				removeWhitespace(value);
+				// removeWhitespace(key);
+				// removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
 				if (key == "Content-Type")
 					_flag = true;
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
@@ -68,10 +68,12 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 			if(end != std::string::npos) {
 				key = temp2.substr(0, start);
 				value = temp2.substr(start + 1, end - start - 1);
-				removeWhitespace(key);
-				removeWhitespace(value);
+				// removeWhitespace(key);
+				// removeWhitespace(value);
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+				if (key == "Content-Type")
+					_flag = true;
+				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
@@ -88,56 +90,64 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 }
 
 void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
-	int j = 0;
+	// int j = 0;
 	// int k = 0;
 	std::string bodyStart = headerEnd + 2;
-	bool flag = false;
+	// bool flag = false;
+	(void)start;
+	(void)end;
+	(void)key;
+	(void)value;
 	if (bodyStart.length() > 0) {
-		while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
-			j++;
-		_bodyStart = bodyStart.substr(0, j);
-		end = 0;
-		bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
-		while (end < bodyStart.size())
-		{
-			std::cout << "HEY" << std::endl;
-			start = bodyStart.find(':', 0);
-			end = bodyStart.find('\n', 0);
-			if (bodyStart[0] == '\r' && bodyStart[1] == '\n' && bodyStart[2] == '\r')
-				break;
-			std::cout << BLUE << start << "----" << end << RESET << std::endl; 
-			if(end != std::string::npos && start < end) {
-				std::cout << "AHAHAH" << std::endl;
-				key = bodyStart.substr(0, start);
-				value = bodyStart.substr(start + 2, end - start - 2);
-				removeWhitespace(key);
-				removeWhitespace(value);
-				_mapBody.insert(std::pair<std::string, std::string>(key, value));
-				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-			}
-			else {
-				std::cout << "ciao" << std::endl;
-				_body = bodyStart.substr(2, bodyStart.length());
-				bodyStart = bodyStart.substr(0, _body.length());
-				flag = true;
-				break ;
-			}
-			bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
-		}
-	j = 0;
-	if (flag == false) {
-		while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
-			j++;
-		bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
-		_bodyEnd = bodyStart;
-		}
+		_mapHeader.insert(std::pair<std::string, std::string>("Body", bodyStart));
 	}
-	else {
-		std::cout << YELLOW << _body << RESET << std::endl;
-		std::cout << "AAAA:  " << _body.substr(_body.find("------WebKitFormBoundary"), _body.length() - _body.find("------WebKitFormBoundary")) << std::endl;
-	}
-	std::cout << YELLOW << _bodyEnd << RESET << std::endl;
+	std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;
 }
+	// 	while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
+	// 		j++;
+	// 	_bodyStart = bodyStart.substr(0, j);
+	// 	end = 0;
+	// 	bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
+	// 	while (end < bodyStart.size())
+	// 	{
+	// 		std::cout << "HEY" << std::endl;
+	// 		start = bodyStart.find(':', 0);
+	// 		end = bodyStart.find('\n', 0);
+	// 		if (bodyStart[0] == '\r' && bodyStart[1] == '\n' && bodyStart[2] == '\r')
+	// 			break;
+	// 		std::cout << BLUE << start << "----" << end << RESET << std::endl; 
+	// 		if(end != std::string::npos && start < end) {
+	// 			std::cout << "AHAHAH" << std::endl;
+	// 			key = bodyStart.substr(0, start);
+	// 			value = bodyStart.substr(start + 2, end - start - 2);
+	// 			// removeWhitespace(key);
+	// 			// removeWhitespace(value);
+	// 			_mapBody.insert(std::pair<std::string, std::string>(key, value));
+	// 			std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
+	// 		}
+	// 		else {
+	// 			std::cout << "ciao" << std::endl;
+	// 			_body = bodyStart.substr(2, bodyStart.length());
+	// 			bodyStart = bodyStart.substr(0, _body.length());
+	// 			flag = true;
+	// 			break ;
+	// 		}
+	// 		bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
+	// 	}
+	// }
+	// j = 0;
+	// if (flag == false) {
+	// 	while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
+	// 		j++;
+	// 	bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
+	// 	_bodyEnd = bodyStart;
+	// }
+	// else {
+	// 	_bodyEnd = _body.substr(_body.find("------WebKitFormBoundary"), _body.length() - _body.find("------WebKitFormBoundary"));
+	// 	std::cout << YELLOW << _body << RESET << std::endl;
+	// }
+	// std::cout << BLUE << _bodyEnd << RESET << std::endl;
+// }
 
 void	RequestHandler::parsereq(std::string buffer) {
 	unsigned long i = 0;
