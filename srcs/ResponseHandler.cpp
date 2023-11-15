@@ -45,7 +45,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	int fdOut = fileno(fileOut);
 
 	int		ret = 1;
-	std::cout << "diopover" << _request->getTrueBody() << std::endl;
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	lseek(fdIn, 0, SEEK_SET);
 	// Fork a new process
@@ -72,12 +71,11 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		// extern char** environ;  // Dichiarato all'inizio del tuo codice
 		// execve(scriptPath.c_str(), const_cast<char **>(pyArgs), environ);
 		std::cout << absolutPath << std::endl;
-		const char *pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
+		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
 		// for (int i = 0; pyArgs[i]; i++)
 		// 	std::cout << "\t" <<pyArgs[i] << std::endl;
-		execve("/usr/local/bin/python3", const_cast<char **> (pyArgs), _env);
+		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		// perror("Error");
-		std::cout <<
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}

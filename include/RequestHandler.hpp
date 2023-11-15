@@ -12,8 +12,6 @@ class RequestHandler {
 		std::string _path;
 		std::string _protocol;
 		std::map <std::string, std::string> _mapHeader;
-		std::string _bodyStart;
-		std::string _bodyEnd;
 		std::string _body;
 		std::map <std::string, std::string> _mapBody;
 		std::vector<std::map<std::string, LocationPath> > _locationPathMap;

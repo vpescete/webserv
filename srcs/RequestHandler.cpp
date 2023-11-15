@@ -46,7 +46,6 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
 				if (key == "Content-Type")
 					_flag = true;
-				std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
 			}
 			temp2 = temp2.substr(end + 1);
 		}
@@ -78,10 +77,10 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 			temp2 = temp2.substr(end + 1);
 		}
 		if (headerEnd[0] == '-') {
-			std::cout << "noImage" << std::endl;
 			uploadNoImage(start, end, key, value, headerEnd);
 		}
 		else {
+			std::cout << CYAN << headerEnd << RESET << std::endl;
 			_body = headerEnd;
 			_mapHeader.insert(std::pair<std::string, std::string>("Body", _body));
 		}
@@ -92,6 +91,7 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
 	// int j = 0;
 	// int k = 0;
+	std::cout << "PROVA" << std::endl;
 	std::string bodyStart = headerEnd + 2;
 	// bool flag = false;
 	(void)start;
@@ -100,9 +100,10 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	(void)value;
 	if (bodyStart.length() > 0) {
 		_mapHeader.insert(std::pair<std::string, std::string>("Body", bodyStart));
+		std::cout << bodyStart << std::endl;
 		_body = bodyStart;
 	}
-	std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;
+	//std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;
 }
 	// 	while(bodyStart[j] != '\n' && bodyStart[j] != '\0')
 	// 		j++;
@@ -153,7 +154,6 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 void	RequestHandler::parsereq(std::string buffer) {
 	unsigned long i = 0;
 	std::string temp;
-	std::cout << RED << buffer << RESET << std::endl;
 	while (buffer[i] != '\n' && i < buffer.length()) {
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
