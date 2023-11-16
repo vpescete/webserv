@@ -406,15 +406,15 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	// env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	// env["SERVER_SOFTWARE"] = "Webserv/1.0";
 	(void)envpwd;
-	env["SERVER_NAME"] = "localhost:8000";
+	env["SERVER_NAME"] = _server->getHost() + ":" + std::to_string(_server->getPort());
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_PORT"] = "8000";
-	env["REQUEST_METHOD"] = "POST";
-	env["PATH_TRANSLATED"] = "/Users/ohassyaoui/Projects/42Cursus/webserv/www/tmp/upload.py";
+	env["SERVER_PORT"] = std::to_string(_server->getPort());
+	env["REQUEST_METHOD"] = _request->getMethod();
+	env["PATH_TRANSLATED"] = envpwd + _path ;
 	env["SCRIPT_NAME"] = "upload.py";
 	env["CONTENT_TYPE"] = headers["Content-Type"];
-	env["CONTENT_LENGTH"] = "0";
+	env["CONTENT_LENGTH"] = headers["Content-Length"];
 
 	std::string tmp;
 	_env = (char **)malloc(sizeof(char*)*env.size());
