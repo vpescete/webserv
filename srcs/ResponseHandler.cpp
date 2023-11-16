@@ -45,8 +45,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	int fdOut = fileno(fileOut);
 
 	int		ret = 1;
-	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	lseek(fdIn, 0, SEEK_SET);
+	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	// Fork a new process
 	pid = fork();
 	if (pid == -1) {
@@ -58,6 +58,10 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
+		// close(fdIn);
+		// close(fdOut);
+		// for (int j = 0; _env[j]; j++)
+		// 	std::cout << _env[j] << std::endl;
 		const char* pyArgs[] = {"/usr/bin/python3", absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
@@ -66,6 +70,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	else
 	{
 		char	buffer[65536] = {0};
+		fclose(fileIn);
+		fclose(fileOut);
 		while (waitpid(-1, NULL, 2) != -1) ;
 		lseek(fdOut, 0, SEEK_SET);
 		while (ret > 0)
@@ -78,8 +84,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	dup2(saveStdin, STDIN_FILENO);
 	dup2(saveStdout, STDOUT_FILENO);
-	fclose(fileIn);
-	fclose(fileOut);
 	close(fdIn);
 	close(fdOut);
 	close(saveStdin);
