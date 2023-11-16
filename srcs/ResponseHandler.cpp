@@ -386,26 +386,6 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	env;
 	int i=0;
 
-	// env["REQUEST_METHOD"] = _request->getMethod();
-	// env["PWD"] = envpwd;
-	// env["REDIRECT_STATUS"] = "200";
-	// env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	// env["SCRIPT_NAME"] = "upload.py";
-	// env["CONTENT_LENGTH"] = headers["Content-Length"];
-	// env["CONTENT_TYPE"] = headers["Content-Type"];
-	// env["PATH_INFO"] = _path;
-	// env["PATH_TRANSLATED"] =_path;
-	// env["QUERY_STRING"] = _path;
-	// env["REMOTEaddr"] = _server->getHost();
-	// env["UPLOAD_PATH"] = envpwd + "/uploads";
-	// if (headers.find("Hostname") != headers.end())
-	// 	env["SERVER_NAME"] = headers["Hostname"];
-	// else
-	// 	env["SERVER_NAME"] = env["REMOTEaddr"];
-	// env["SERVER_PORT"] = std::to_string(_server->getPort());
-	// env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	// env["SERVER_SOFTWARE"] = "Webserv/1.0";
-	(void)envpwd;
 	env["SERVER_NAME"] = _server->getHost() + ":" + std::to_string(_server->getPort());
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
