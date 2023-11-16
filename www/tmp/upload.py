@@ -1,57 +1,25 @@
-import cgi
-import os
+import cgi, os
 
-# Parse the incoming HTTP request
 form = cgi.FieldStorage()
 
-# Debugging: Print all keys in the form
-print('Debug: Form keys:', list(form.keys()))
+fileitem = form.getValue('file1')
 
-# Check if 'file' key exists in the form
-if 'file' in form:
-    fileitem = form['file']
-    # Rest of your code for handling file upload...
+path = "/uploads/"
+
+isExist = os.path.exists(path)
+
+if not isExist:
+	os.makedirs(path)
+
+if fileitem.filename:
+	fn = os.path.basename(fileitem.filename)
+	open(path + fn, 'wb').write(fileitem.file.read())
+	message = "The file '" + fn + "' was uploaded successfully"
 else:
-    print("Debug: 'file' key not found in form")
-    # Handle the case where 'file' is not in form
+	message = "No file was uploaded"
 
-if os.environ['REQUEST_METHOD'] == 'GET':
-	# If the request method is GET, generate an HTML form that allows the user to select a file to upload
-	print('Content-Type: text/html')
-	print()
-	print('<html>')
-	print('<body>')
-	print('<form enctype="multipart/form-data" method="post">')
-	print('<input type="file" name="file">')
-	print('<input type="submit" value="Upload">')
-	print('</form>')
-	print('</body>')
-	print('</html>')
-elif os.environ['REQUEST_METHOD'] == 'POST':
-	# If the request method is POST, read the uploaded file from the request body and save it to a file on the server
-	fileitem = form['file']
-
-	print('Debug: Form:', form)  # Stampa il contenuto del modulo cgi.FieldStorage()
-
-	if fileitem.filename:
-		filename = os.path.basename(fileitem.filename)
-		print('Debug: File name:', filename)  # Stampa il nome del file
-
-		with open('/uploads/{}'.format(filename), 'wb') as f:
-			f.write(fileitem.file.read())
-		message = 'Upload successful'
-	else:
-		message = 'No file uploaded'
-
-	# Send an HTTP response with a message indicating whether the upload was successful
-	print('Content-Type: text/html')
-	print()
-	print('<html>')
-	print('<head>')
-	print('<title>CGI UPLOAD FORM</title>')
-	print('</head>')
-	print('<body>')
-	print(f'<p>{message}</p>')
-	print('</body>')
-	print('</html>')
-
+print("""\
+<html><body>
+<p>%s</p>
+</body></html>
+""" % (message,))

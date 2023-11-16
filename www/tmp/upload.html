@@ -19,22 +19,24 @@
 
 <br><br><br>
 
-<!-- <form action="./upload.py" method="POST" enctype="multipart/form-data">
-  <input type="file" name="image"  id="upload">
-  <button type="submit">Upload</button>
-</form> -->
-
-<form action="./upload.py" method="post" enctype="multipart/form-data">
+<!-- <form action="./upload.py" method="post" enctype="multipart/form-data">
   <label for="file">Seleziona un file:</label>
   <input type="file" name="file" id="file">
   <input type="submit" value="Upload">
+</form> -->
+
+<form action="./upload.py" method="post" enctype="multipart/form-data">
+  <label for="file" >Clicca qui per cercare il file
+  <!-- <input id="file1" type="file" name="file1"> -->
+  <input type="text" name="file1" id="file1">
+  <button type="submit" name="button">Carica il file con Python!<br> </button>
 </form>
 
-<script>
+<!-- <script>
   const inp = document.querySelector("#upload")
   console.log(inp)
   inp.addEventListener('change', (e)=>prova(e))
   const prova = (e) => {
     console.log("uuuu",e.target.files[0])
   }
-</script>
+</script> -->

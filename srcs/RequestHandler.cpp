@@ -91,7 +91,6 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
 	// int j = 0;
 	// int k = 0;
-	std::cout << "PROVA" << std::endl;
 	std::string bodyStart = headerEnd + 2;
 	// bool flag = false;
 	(void)start;
@@ -100,7 +99,6 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	(void)value;
 	if (bodyStart.length() > 0) {
 		_mapHeader.insert(std::pair<std::string, std::string>("Body", bodyStart));
-		std::cout << bodyStart << std::endl;
 		_body = bodyStart;
 	}
 	//std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;

@@ -58,24 +58,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		// char** env = environ;
-		// for (; *env != nullptr; ++env) {
-		// 	std::cout << CYAN << *env <<  RESET << std::endl;
-		// }
-		// *env = _env[1];
-		// env++;
-		// *env = NULL;
-		// std::cout << "[DEBUGGGG]" <<  env[0] << std::endl;
-		// std::cout << "[DEBUGGGG]" <<  env[1] << std::endl;
-		// Execute the CGI script
-		// extern char** environ;  // Dichiarato all'inizio del tuo codice
-		// execve(scriptPath.c_str(), const_cast<char **>(pyArgs), environ);
-		std::cout << absolutPath << std::endl;
-		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
-		// for (int i = 0; pyArgs[i]; i++)
-		// 	std::cout << "\t" <<pyArgs[i] << std::endl;
+		const char* pyArgs[] = {"/usr/bin/python3", absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
-		// perror("Error");
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
@@ -400,30 +384,37 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	headers = _headers;
 	std::map<std::string, std::string>	env;
-	// char cwd[9999];
-	// getcwd(cwd, sizeof(cwd));
 	int i=0;
-	env["REQUEST_METHOD"] = _request->getMethod();
-	env["PWD"] = envpwd;
-	env["REDIRECT_STATUS"] = "200";
+
+	// env["REQUEST_METHOD"] = _request->getMethod();
+	// env["PWD"] = envpwd;
+	// env["REDIRECT_STATUS"] = "200";
+	// env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	// env["SCRIPT_NAME"] = "upload.py";
+	// env["CONTENT_LENGTH"] = headers["Content-Length"];
+	// env["CONTENT_TYPE"] = headers["Content-Type"];
+	// env["PATH_INFO"] = _path;
+	// env["PATH_TRANSLATED"] =_path;
+	// env["QUERY_STRING"] = _path;
+	// env["REMOTEaddr"] = _server->getHost();
+	// env["UPLOAD_PATH"] = envpwd + "/uploads";
+	// if (headers.find("Hostname") != headers.end())
+	// 	env["SERVER_NAME"] = headers["Hostname"];
+	// else
+	// 	env["SERVER_NAME"] = env["REMOTEaddr"];
+	// env["SERVER_PORT"] = std::to_string(_server->getPort());
+	// env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	// env["SERVER_SOFTWARE"] = "Webserv/1.0";
+	(void)envpwd;
+	env["SERVER_NAME"] = "localhost:8000";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["SCRIPT_NAME"] = _path;
-	env["SCRIPT_FILENAME"] = _path;
-	env["CONTENT_LENGTH"] = headers["Content-Length"];
-	env["CONTENT_TYPE"] = headers["Content-Type"];
-	env["PATH_INFO"] = _path;
-	env["PATH_TRANSLATED"] =_path;
-	env["QUERY_STRING"] = _path;
-	env["REMOTEaddr"] = _server->getHost();
-	env["UPLOAD_PATH"] = envpwd + "/uploads";
-	if (headers.find("Hostname") != headers.end())
-		env["SERVER_NAME"] = headers["Hostname"];
-	else
-		env["SERVER_NAME"] = env["REMOTEaddr"];
-	env["SERVER_PORT"] = std::to_string(_server->getPort());
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_SOFTWARE"] = "Webserv/1.0";
-	env["HTTP_COOKIE"] = headers["Cookie"];
+	env["SERVER_PORT"] = "8000";
+	env["REQUEST_METHOD"] = "POST";
+	env["PATH_TRANSLATED"] = "/Users/ohassyaoui/Projects/42Cursus/webserv/www/tmp/upload.py";
+	env["SCRIPT_NAME"] = "upload.py";
+	env["CONTENT_TYPE"] = headers["Content-Type"];
+	env["CONTENT_LENGTH"] = "0";
 
 	std::string tmp;
 	_env = (char **)malloc(sizeof(char*)*env.size());
@@ -431,8 +422,8 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	{
 		tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
+		//std::cout << tmp << std::endl;
 		std::strcpy(_env[i], tmp.c_str());
-		//std::cout << _env[i] << std::endl;
 		++i;
 	}
 }
