@@ -2,7 +2,7 @@ import cgi, os
 
 form = cgi.FieldStorage()
 
-fileitem = form['file']
+fileitem = form['file1']
 
 path = "/uploads/"
 

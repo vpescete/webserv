@@ -46,6 +46,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int		ret = 1;
 	lseek(fdIn, 0, SEEK_SET);
+	// std::cout << GREEN  <<  _request->getTrueBody() << RESET << std::endl;
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	// Fork a new process
 	pid = fork();
@@ -53,7 +54,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
-
 	if (pid == 0) {    // This is the child process
 
 		dup2(fdIn, STDIN_FILENO);
@@ -62,16 +62,16 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		// close(fdOut);
 		// for (int j = 0; _env[j]; j++)
 		// 	std::cout << _env[j] << std::endl;
-		const char* pyArgs[] = {"/usr/bin/python3", absolutPath.c_str(), NULL};
+		// std::cout << RED << "Porcoddio" << RESET << std::endl;
+		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
+		perror("Error");
 		exit(EXIT_FAILURE);
 	}
 	else
 	{
 		char	buffer[65536] = {0};
-		fclose(fileIn);
-		fclose(fileOut);
 		while (waitpid(-1, NULL, 2) != -1) ;
 		lseek(fdOut, 0, SEEK_SET);
 		while (ret > 0)
@@ -81,7 +81,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 			newBody += buffer;
 		}
 	}
-
+	fclose(fileIn);
+	fclose(fileOut);
 	dup2(saveStdin, STDIN_FILENO);
 	dup2(saveStdout, STDOUT_FILENO);
 	close(fdIn);
@@ -390,6 +391,8 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	env;
 	int i=0;
 
+	// std::cout << RED <<  "[DEBUG Truebody] " << _request->getTrueBody() << RESET << std::endl;
+	// std::cout << CYAN << "[DEBUG lenght True Body] " << _request->getTrueBody().length() << RESET << std::endl;
 	env["SERVER_NAME"] = _server->getHost() + ":" + std::to_string(_server->getPort());
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
@@ -398,7 +401,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["PATH_TRANSLATED"] = envpwd + _path ;
 	env["SCRIPT_NAME"] = "upload.py";
 	env["CONTENT_TYPE"] = headers["Content-Type"];
-	env["CONTENT_LENGTH"] = headers["Content-Length"];
+	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
 
 	std::string tmp;
 	_env = (char **)malloc(sizeof(char*)*env.size());

@@ -80,7 +80,7 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 			uploadNoImage(start, end, key, value, headerEnd);
 		}
 		else {
-			std::cout << CYAN << headerEnd << RESET << std::endl;
+			// std::cout << CYAN << headerEnd << RESET << std::endl;
 			_body = headerEnd;
 			_mapHeader.insert(std::pair<std::string, std::string>("Body", _body));
 		}
@@ -150,6 +150,7 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 // }
 
 void	RequestHandler::parsereq(std::string buffer) {
+	// std::cout << CYAN << buffer << RESET << std::endl;
 	unsigned long i = 0;
 	std::string temp;
 	while (buffer[i] != '\n' && i < buffer.length()) {
