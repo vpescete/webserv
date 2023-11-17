@@ -30,8 +30,23 @@ bool ResponseHandler::isDirectory(const std::string& path) {
 	}
 }
 
+void printFileContents(int fd) {
+    char buffer[4096];  // Buffer di lettura
+    lseek(fd, 0, SEEK_SET);  // Imposta il cursore del file all'inizio
+
+    ssize_t bytesRead;
+    while ((bytesRead = read(fd, buffer, sizeof(buffer))) > 0) {
+        // Stampa i dati letti
+        std::cout.write(buffer, bytesRead);
+    }
+
+    if (bytesRead == -1) {
+        // Gestisci l'errore se la lettura fallisce
+        perror("read");
+    }
+}
+
 std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
-	(void)scriptPath;
 	std::string newBody;
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
@@ -51,6 +66,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	std::cout << GREEN  <<  _request->getTrueBody() << RESET << std::endl;
 	// Scrivi il corpo della richiesta prima di fork
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
+	// printFileContents(fdIn);
 	// Fork di un nuovo processo
 	pid = fork();
 	if (pid == -1) {
@@ -60,7 +76,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	if (pid == 0) {    // Questo è il processo figlio
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
+		const char* pyArgs[] = {scriptPath.c_str(), absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		perror("Error");
