@@ -38,6 +38,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
+	// for (int j = 0; _env[j]; j++)
+	// 	std::cout << _env[j] << std::endl;
 
 	FILE* fileIn = tmpfile();
 	FILE* fileOut = tmpfile();
@@ -60,8 +62,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		dup2(fdOut, STDOUT_FILENO);
 		// close(fdIn);
 		// close(fdOut);
-		// for (int j = 0; _env[j]; j++)
-		// 	std::cout << _env[j] << std::endl;
 		// std::cout << RED << "Porcoddio" << RESET << std::endl;
 		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
@@ -404,7 +404,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
 
 	std::string tmp;
-	_env = (char **)malloc(sizeof(char*)*env.size());
+	_env = (char **)malloc(sizeof(char*)*env.size() + 1);
 	for (std::map<std::string, std::string>::iterator it = env.begin(); it != env.end(); it++)
 	{
 		tmp = it->first + "=" + it->second;
@@ -413,6 +413,7 @@ void ResponseHandler::setEnv(std::string envpwd) {
 		std::strcpy(_env[i], tmp.c_str());
 		++i;
 	}
+	_env[i] = NULL;
 }
 
 void ResponseHandler::setStatusCodeMap()
