@@ -2,9 +2,11 @@ import cgi, os
 
 form = cgi.FieldStorage()
 
+print(form)
+
 fileitem = form['file1']
 
-path = "/uploads/"
+path = "./uploads/"
 
 isExist = os.path.exists(path)
 

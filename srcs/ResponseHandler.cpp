@@ -48,21 +48,18 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int		ret = 1;
 	lseek(fdIn, 0, SEEK_SET);
-	// std::cout << GREEN  <<  _request->getTrueBody() << RESET << std::endl;
+	std::cout << GREEN  <<  _request->getTrueBody() << RESET << std::endl;
+	// Scrivi il corpo della richiesta prima di fork
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
-	// Fork a new process
+	// Fork di un nuovo processo
 	pid = fork();
 	if (pid == -1) {
 		perror("fork");
 		exit(EXIT_FAILURE);
 	}
-	if (pid == 0) {    // This is the child process
-
+	if (pid == 0) {    // Questo è il processo figlio
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		// close(fdIn);
-		// close(fdOut);
-		// std::cout << RED << "Porcoddio" << RESET << std::endl;
 		const char* pyArgs[] = {"/usr/local/bin/python3", absolutPath.c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
