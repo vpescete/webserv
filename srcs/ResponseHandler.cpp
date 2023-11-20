@@ -46,6 +46,35 @@ void printFileContents(int fd) {
     }
 }
 
+std::string ResponseHandler::makeResponse(int code, std::string content)
+{
+	std::string response("HTTP/1.1 ");
+
+	if (_content.size() - 2 == 0)
+	{
+		response.append(std::to_string(204));
+		response.append(" ");
+		response.append(getResponseCode(204));
+	}
+	else
+	{
+		response.append(getStatusCode());
+		response.append(" ");
+		response.append(getResponseCode(code));
+	}
+	response.append("\r\n");
+	response.append("content-type: ");
+	response.append(getContentType());
+	response.append("\r\n");
+	response.append("content-length: ");
+	response.append(std::to_string(content.length()));
+	response.append("\r\n");
+	response.append(getDate());
+	response.append("\r\n\r\n");
+	response.append(content);
+	return response;
+}
+
 std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::string envpath) {
 	std::string newBody;
 	pid_t pid;
@@ -53,8 +82,8 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
-	// for (int j = 0; _env[j]; j++)
-	// 	std::cout << _env[j] << std::endl;
+	for (int j = 0; _env[j]; j++)
+		std::cout << _env[j] << std::endl;
 
 	FILE* fileIn = tmpfile();
 	FILE* fileOut = tmpfile();
@@ -253,7 +282,9 @@ void ResponseHandler::sendResponse()
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
-		std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		std::string response = makeResponse(statuscode, content);
+		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
 	}
@@ -268,7 +299,10 @@ void ResponseHandler::sendResponse()
 		std::string content = buffer.str();
 		std::string temp;
 		int dataSent = 0;
-		std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "Content-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		std::string response = makeResponse(statuscode, content);
+
+		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
 		do {
 			temp = response.substr(0, 35000);
 			dataSent = send(_clientSocket, temp.c_str(), temp.length(), 0);
@@ -319,7 +353,7 @@ void ResponseHandler::setContent(std::string pwd)
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
 		}
-		else if (type == ".py") // file has to go through cgi
+		else if (type == ".py" || type == ".php") // file has to go through cgi
 		{
 			std::string location = _server->getMap().find("location")->second;
 			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
@@ -406,7 +440,8 @@ void ResponseHandler::setEnv(std::string envpwd) {
 
 	// std::cout << RED <<  "[DEBUG Truebody] " << _request->getTrueBody() << RESET << std::endl;
 	// std::cout << CYAN << "[DEBUG lenght True Body] " << _request->getTrueBody().length() << RESET << std::endl;
-	env["SERVER_NAME"] = _server->getHost() + ":" + std::to_string(_server->getPort());
+	std::cout << envpwd << std::endl;
+	env["SERVER_NAME"] = _server->getHost();
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_PORT"] = std::to_string(_server->getPort());
@@ -415,6 +450,16 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["SCRIPT_NAME"] = "upload.py";
 	env["CONTENT_TYPE"] = headers["Content-Type"];
 	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
+	env["HTTP_COOKIE"] = "";
+	env["PATH_INFO"] = _path;
+	env["QUERY_STRING"] = "";
+	env["REMOTEaddr"] = _server->getHost();
+	env["REQUEST_URI"] =  _path;
+	env["REDIRECT_STATUS"] = "200";
+	env["SCRIPT_FILENAME"] = _path;
+	env["SERVER_SOFTWARE"] = "Webserv/1.0";
+	env["UPLOAD_PATH"] =  envpwd + "/uploads/";
+
 
 	std::string tmp;
 	_env = (char **)malloc(sizeof(char*)*env.size() + 1);
