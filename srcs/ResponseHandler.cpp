@@ -132,6 +132,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	if (!pid)
 		exit(0);
+	// std::cout << newBody << std::endl;
 	return newBody;
 }
 
@@ -397,10 +398,8 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = type;
 	}
 	// pretty self-explicatory from this point onwards
-	if ((type == "html") || _request->getMethod() == "DELETE")
+	if ((type == "html") || _request->getMethod() == "DELETE" || (type == "py"))
 		_contentType = "text/html";
-	else if (type == "py")
-		_contentType = "multipart/form-data";
 	else if (type == "css")
 		_contentType = "text/css";
 	else if (type == "js")
@@ -413,8 +412,6 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
-	// if (_request->getBool() == true)
-	// 	_headers["Content-Type"] = _request->getHeaders().at("Content-Type");
 }
 
 std::string	trimUselessChar(std::string contentType) {

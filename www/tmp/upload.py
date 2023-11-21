@@ -2,7 +2,7 @@ import cgi, os
 
 form = cgi.FieldStorage()
 
-print(form)
+# print(form)
 
 fileitem = form['file1']
 
