@@ -1,0 +1,10 @@
+------WebKitFormBoundaryRnx0Pn2mrtBQ8514
+Content-Disposition: form-data; name="file1"; filename="file.txt"
+Content-Type: text/plain
+
+Porcodeddiooooo
+------WebKitFormBoundaryRnx0Pn2mrtBQ8514
+Content-Disposition: form-data; name="button"
+
+
+------WebKitFormBoundaryRnx0Pn2mrtBQ8514--

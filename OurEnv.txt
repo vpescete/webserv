@@ -1,5 +1,5 @@
-        CONTENT_LENGTH=291$
-        CONTENT_TYPE=multipart/form-data; boundary=----WebKitFormBoundaryPFBeBP9ct0ui0lk6$
+        CONTENT_LENGTH=289$
+$       CONTENT_TYPE=multipart/form-data; boundary=----WebKitFormBoundary26bkdRB1NQUSVyN6
         GATEWAY_INTERFACE=CGI/1.1$
         HTTP_COOKIE=$
         PATH_INFO=www/tmp/upload.py$
@@ -17,4 +17,4 @@
         SERVER_PORT=8080$
         SERVER_PROTOCOL=HTTP/1.1$
         SERVER_SOFTWARE=Webserv/1.0$
-        UPLOAD_PATH=/Users/vpescete/EnrikWebServ/uploads/$
+        UPLOAD_PATH=/Users/vpescete/webserv/uploads/$

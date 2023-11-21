@@ -48,6 +48,7 @@ void printFileContents(int fd) {
 
 std::string ResponseHandler::makeResponse(int code, std::string content)
 {
+	// std::cout << CYAN << content << RESET << std::endl;
 	std::string response("HTTP/1.1 ");
 
 	if (_content.size() - 2 == 0)
@@ -82,17 +83,15 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
-	for (int j = 0; _env[j]; j++)
-		std::cout << _env[j] << std::endl;
+	for	(int i = 0; _env[i]; i++)
+		std::cout << "\t" << CYAN << _env[i] << RED << "$" << RESET << std::endl;
 
 	FILE* fileIn = tmpfile();
 	FILE* fileOut = tmpfile();
 	int fdIn = fileno(fileIn);
 	int fdOut = fileno(fileOut);
-
 	int		ret = 1;
 	lseek(fdIn, 0, SEEK_SET);
-	std::cout << GREEN  <<  _request->getTrueBody() << RESET << std::endl;
 	// Scrivi il corpo della richiesta prima di fork
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	// printFileContents(fdIn);
@@ -168,16 +167,13 @@ std::string ResponseHandler::getResponseCode(int code) const
 
 std::string ResponseHandler::getDate() const
 {
-	time_t rawtime;
-	struct tm *timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-	strftime(buffer, sizeof(buffer), "%a, %d %b %Y %H:%M:%S %Z", timeinfo);
-	std::string str(buffer);
-
-	return str;
+	std::string date = "date: ";
+	time_t t = std::time(nullptr);
+	tm* lt = std::localtime(&t);
+	char buffer[50];
+	std::strftime(buffer, 80, "%a, %d %b %Y %X", lt);
+	date.append(std::string(buffer));
+	return date;
 }
 
 LocationPath ResponseHandler::getLocationPath(std::string path)
@@ -284,7 +280,7 @@ void ResponseHandler::sendResponse()
 		std::string content = buffer.str();
 		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		std::string response = makeResponse(statuscode, content);
-		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
+		// std::cout << RED << response << RESET << std::endl;
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
 	}
@@ -300,6 +296,7 @@ void ResponseHandler::sendResponse()
 		std::string temp;
 		int dataSent = 0;
 		std::string response = makeResponse(statuscode, content);
+		// std::cout << RED << response << RESET << std::endl;
 
 		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
@@ -436,27 +433,29 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	headers = _headers;
 	std::map<std::string, std::string>	env;
+	std::string path = _path.substr(1);
 	int i=0;
 
 	// std::cout << RED <<  "[DEBUG Truebody] " << _request->getTrueBody() << RESET << std::endl;
 	// std::cout << CYAN << "[DEBUG lenght True Body] " << _request->getTrueBody().length() << RESET << std::endl;
-	std::cout << envpwd << std::endl;
-	env["SERVER_NAME"] = _server->getHost();
-	env["GATEWAY_INTERFACE"] = "CGI/1.1";
-	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_PORT"] = std::to_string(_server->getPort());
-	env["REQUEST_METHOD"] = _request->getMethod();
-	env["PATH_TRANSLATED"] = envpwd + _path ;
-	env["SCRIPT_NAME"] = "upload.py";
-	env["CONTENT_TYPE"] = headers["Content-Type"];
 	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
+	env["CONTENT_TYPE"] = headers["Content-Type"].substr(1);
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["HTTP_COOKIE"] = "";
-	env["PATH_INFO"] = _path;
+	env["PATH_INFO"] = path;
+	env["PATH_TRANSLATED"] = path ;
 	env["QUERY_STRING"] = "";
-	env["REMOTEaddr"] = _server->getHost();
-	env["REQUEST_URI"] =  _path;
 	env["REDIRECT_STATUS"] = "200";
-	env["SCRIPT_FILENAME"] = _path;
+	env["REMOTE_IDENT"] = "";
+	env["REMOTE_USER"] = "";
+	env["REMOTEaddr"] = _server->getHost();
+	env["REQUEST_METHOD"] = _request->getMethod();
+	env["REQUEST_URI"] =  path;
+	env["SCRIPT_FILENAME"] = path;
+	env["SCRIPT_NAME"] = path;
+	env["SERVER_NAME"] = _server->getHost();
+	env["SERVER_PORT"] = std::to_string(_server->getPort());
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "Webserv/1.0";
 	env["UPLOAD_PATH"] =  envpwd + "/uploads/";
 
