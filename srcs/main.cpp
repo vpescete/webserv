@@ -98,7 +98,6 @@ int	main(int ac, char *av[], char **env) {
 				std::ifstream fdopenFile((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK);
 				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (!fdopenFile.is_open())) {
 					if (!fdopenFile.is_open()) {
-						//std::cout << (*srvs[index]).getIndex() << std::endl;
 						req.autoIndex(events[i].ident);
 						req.setResponse(srvs[index], events[i].ident, pwd);
 					}

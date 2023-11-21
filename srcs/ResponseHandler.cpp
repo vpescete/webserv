@@ -48,7 +48,6 @@ void printFileContents(int fd) {
 
 std::string ResponseHandler::makeResponse(int code, std::string content)
 {
-	// std::cout << CYAN << content << RESET << std::endl;
 	std::string response("HTTP/1.1 ");
 
 	if (_content.size() - 2 == 0)
@@ -92,7 +91,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	// Scrivi il corpo della richiesta prima di fork
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
 	lseek(fdIn, 0, SEEK_SET);
-	// printFileContents(fdIn);
 	// Fork di un nuovo processo
 	pid = fork();
 	if (pid == -1) {
@@ -120,10 +118,10 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 			newBody += buffer;
 		}
 	}
-	fclose(fileIn);
-	fclose(fileOut);
 	dup2(saveStdin, STDIN_FILENO);
 	dup2(saveStdout, STDOUT_FILENO);
+	fclose(fileIn);
+	fclose(fileOut);
 	close(fdIn);
 	close(fdOut);
 	close(saveStdin);
@@ -134,9 +132,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	if (!pid)
 		exit(0);
-	// std::cout << "PORCMADONNA" << std::endl;
-	std::cout << newBody << std::endl;
-	// std::cout << "PORCODDIO" << std::endl;
 	return newBody;
 }
 
@@ -255,8 +250,6 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 	}
 
 	_path = responsePath;
-	// _fullPath = getcwd(cwd, sizeof(cwd)) + _path;
-	// std::cout << _fullPath << std::endl;
 }
 
 void ResponseHandler::sendResponse()
@@ -278,26 +271,20 @@ void ResponseHandler::sendResponse()
 		std::string content = buffer.str();
 		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		std::string response = makeResponse(statuscode, content);
-		// std::cout << RED << response << RESET << std::endl;
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
 	}
 	else {
-		// char cwd[999];
-		// std::ifstream file(getcwd(cwd, sizeof(cwd)) + _path);
 		std::ifstream file("." + _path);
 		// if (file.is_open()) {
 		std::stringstream buffer;
 		buffer << file.rdbuf();
-		// std::cout << buffer << std::endl;
 		std::string content = buffer.str();
 		std::string temp;
 		int dataSent = 0;
 		std::string response = makeResponse(statuscode, content);
-		// std::cout << RED << response << RESET << std::endl;
 
 		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
 		do {
 			temp = response.substr(0, 35000);
 			dataSent = send(_clientSocket, temp.c_str(), temp.length(), 0);
@@ -360,28 +347,28 @@ void ResponseHandler::setContent(std::string pwd)
 			setContentLenght(ss.str());
 			free(_env);
 		}
-		//else // is probably an html
-		//{
-		//		int fileLen;
-		//	std::string tmp = std::string("\r\n");
-		// 	file.seekg(0, std::ios::end); // move the file iter to the end of the file
-		// 	fileLen = file.tellg();
-		// 	if (fileLen != -1)
-		// 		_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
-		// 	else
-		// 	{
-		// 		file.close();
-		// 		setStatusCode("400");
-		// 	}
-		// 	file.seekg(0, std::ios::beg); // go back to the start of the file
-		// 	std::stringstream buffer;
-		// 	buffer << file.rdbuf(); // read the entire file through stringstream
-		// 	_content = buffer.str(); // convert what has been read to std::string and assign it to _content
-		// 	_content = tmp.append(_content, 0, _content.size());
-		// 	std::stringstream ss;
-		// 	ss << (_content.size() - 2);
-		// 	setContentLenght(ss.str());
-		// }
+		else // is probably an html
+		{
+			int fileLen;
+			std::string tmp = std::string("\r\n");
+			file.seekg(0, std::ios::end); // move the file iter to the end of the file
+			fileLen = file.tellg();
+			if (fileLen != -1)
+				_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
+			else
+			{
+				file.close();
+				setStatusCode("400");
+			}
+			file.seekg(0, std::ios::beg); // go back to the start of the file
+			std::stringstream buffer;
+			buffer << file.rdbuf(); // read the entire file through stringstream
+			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
+			_content = tmp.append(_content, 0, _content.size());
+			std::stringstream ss;
+			ss << (_content.size() - 2);
+			setContentLenght(ss.str());
+		}
 	}
 	else
 	{
@@ -479,7 +466,6 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	{
 		tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
-		//std::cout << tmp << std::endl;
 		std::strcpy(_env[i], tmp.c_str());
 		++i;
 	}

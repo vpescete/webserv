@@ -51,10 +51,6 @@ void	Configuration::_confSplitter(std::string configString) {
 		_map.insert(std::pair<std::string, std::string>(
 			configString.substr(1, start - 1),
 			configString.substr(start + 1, end - 1)));
-	// std::map<std::string, std::string>::iterator it = _map.begin();
-	// for (; it != _map.end(); ++it) {
-	// 	std::cout << it->first << "------" << it->second << std::endl;
-	// }
 }
 
 void Configuration::_setMapLocation() {
