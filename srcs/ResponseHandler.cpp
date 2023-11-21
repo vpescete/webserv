@@ -66,12 +66,11 @@ std::string ResponseHandler::makeResponse(int code)
 	response.append(getContentType());
 	response.append("\r\n");
 	response.append("content-length: ");
-	response.append(std::to_string(_content.length()));
+	response.append(getContentLenght());
 	response.append("\r\n");
 	response.append(getDate());
 	response.append("\r\n\r\n");
 	response.append(_content);
-	std::cout << RED << response << std::endl << RESET;
 	return response;
 }
 
@@ -79,6 +78,10 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	std::string newBody;
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
+
+	for	(int i = 0; _env[i]; i++)
+		std::cout << "\t" << CYAN << _env[i] << RED << "$" << RESET << std::endl;
+	std::cout << std::endl;
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
@@ -134,7 +137,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	if (!pid)
 		exit(0);
 	
-	// std::cout << newBody << std::endl;
 	return newBody;
 }
 
@@ -263,9 +265,7 @@ void ResponseHandler::sendResponse()
 
 	ss << status;
 	ss >> statuscode;
-	// std::cout << _path << std::endl;
-	// std::string::size_type i = 0, j = 0;
-	// std::cout << RED << "[CONTENT]" << _content << RESET << std::endl;
+
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
 	if (_path == "/") {
@@ -274,7 +274,6 @@ void ResponseHandler::sendResponse()
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
-		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		std::string response = makeResponse(statuscode);
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
@@ -330,7 +329,6 @@ void ResponseHandler::setContent(std::string pwd)
 	struct stat s;
 	if (fullPath != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
 	{
-		std::cout << RED << "DIOCANE" << std::endl << RESET;
 		file.close();
 		setStatusCode("404");
 	}
@@ -405,7 +403,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = type;
 	}
 	// pretty self-explicatory from this point onwards
-	if ((type == "html") || _request->getMethod() == "DELETE" || (type == "py"))
+	if ((type == "html") || _request->getMethod() == "DELETE" || (type == "py") || (type == "ico"))
 		_contentType = "text/html";
 	else if (type == "css")
 		_contentType = "text/css";
@@ -441,10 +439,11 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	std::map<std::string, std::string>	headers = _request->getHeadersMap();
 	std::map<std::string, std::string>	env;
 	std::string contentType = trimUselessChar(headers["Content-Type"]);
+	std::string contentLength = trimUselessChar(headers["Content-Length"]);
 	std::string path = _path.substr(1);
 	int i=0;
 
-	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
+	env["CONTENT_LENGTH"] = contentLength;
 	env["CONTENT_TYPE"] = contentType;
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["HTTP_COOKIE"] = "";
@@ -472,8 +471,10 @@ void ResponseHandler::setEnv(std::string envpwd) {
 		tmp = it->first + "=" + it->second;
 		_env[i] = new char[tmp.size() + 1];
 		std::strcpy(_env[i], tmp.c_str());
+		tmp.clear();
 		++i;
 	}
+	tmp.clear();
 	_env[i] = NULL;
 }
 

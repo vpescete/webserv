@@ -63,7 +63,6 @@ int	main(int ac, char *av[], char **env) {
 	pwd = tmp.substr(4, pos - 4);
 	std::vector<Server *> srvs;
 	srvs = startServer(confFile.getMapConfig());
-	RequestHandler req;
 	Clients client;
 	struct kevent events[MAXEVENTS];
 	ssize_t addrlen = sizeof(sockaddr);
@@ -93,6 +92,7 @@ int	main(int ac, char *av[], char **env) {
 					}
 					usleep(100);
 				} while (bytesRead > 0);
+				RequestHandler req;
 				req.parsereq(bufferStr, totalBytesRead);
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
 				std::ifstream fdopenFile((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK);
