@@ -111,6 +111,7 @@ int	main(int ac, char *av[], char **env) {
 				req.setResponse(srvs[index], events[i].ident, pwd);
 				client.closeClientConnection(events[i].ident);
 				usleep(100);
+				bufferStr.clear();
 				// close(events[i].ident);
 			}
 		}

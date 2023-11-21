@@ -71,6 +71,7 @@ std::string ResponseHandler::makeResponse(int code)
 	response.append(getDate());
 	response.append("\r\n\r\n");
 	response.append(_content);
+	std::cout << RED << response << std::endl << RESET;
 	return response;
 }
 
@@ -125,12 +126,14 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	close(fdOut);
 	close(saveStdin);
 	close(saveStdout);
-	//for (size_t i = 0; env[i]; i++)
-	//	delete[] env[i];
-	//delete[] env;
+
+	for (size_t i = 0; _env[i]; i++)
+		delete[] _env[i];
+	delete[] _env;
 
 	if (!pid)
 		exit(0);
+	
 	// std::cout << newBody << std::endl;
 	return newBody;
 }
@@ -266,7 +269,6 @@ void ResponseHandler::sendResponse()
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
 	if (_path == "/") {
-		std::cout << "porcoddio 1" << std::endl;
 		std::ifstream file(_server->getIndex());
 		// if (file.is_open()) {
 		std::stringstream buffer;
@@ -278,14 +280,16 @@ void ResponseHandler::sendResponse()
 		// }
 	}
 	else {
-		std::cout << "porcoddio 2" << std::endl;
 		std::ifstream file("." + _path);
-		// if (file.is_open()) {
-		std::stringstream buffer;
-		buffer << file.rdbuf();
-		std::string content = buffer.str();
 		std::string temp;
 		int dataSent = 0;
+		if (getContentType() == "image/png" || getContentType() == "image/jpeg")
+		{
+		// if (file.is_open()) {
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			_content = buffer.str(); 
+		}
 		std::string response = makeResponse(statuscode);
 
 		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
@@ -299,127 +303,48 @@ void ResponseHandler::sendResponse()
 	}
 }
 
-// void ResponseHandler::setContent(std::string pwd)
-// {
-// 	std::ifstream file;
-// 	std::string preQuestion;
-// 	size_t questPosition = _path.rfind('?');
-// 	if (_path == "/")
-// 		file.open(_server->getIndex());
-// 	else if (questPosition == std::string::npos)
-// 		file.open("." + _path);
-// 	else {
-// 		_postQuestionMark = _path.substr(questPosition + 1, _path.length() - questPosition);
-// 		preQuestion = _path.substr(0, questPosition);
-// 		file.open("." + preQuestion);
-// 		_path = preQuestion;
-// 	}
-// 	struct stat s;
-// 	std::string fullPath = "." + _path;
-// 	std::string _content;
-// 	if (_path != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
-// 	{
-// 		file.close();
-// 		setStatusCode("404");
-// 	}
-// 	if ((file.is_open() && !(s.st_mode & S_IFDIR)) || _path == "/") // check if file is open or is a directory
-// 	{
-// 		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
-// 		std::string type; // extension of the response file
-// 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
-// 			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
-// 		else type = "";
-// 		if (_request && _request->getMethod() == "DELETE")
-// 		{
-// 			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
-// 				_content = "\r\n<h1>File deleted successfully</h1>";
-// 			else
-// 				_content = "\r\n<h1>Unable to delete the file</h1>";
-// 			std::stringstream ss;
-// 			ss << (_content.size() - 2);
-// 			setContentLenght(ss.str());
-// 		}
-// 		else if (type == ".py" || type == ".php") // file has to go through cgi
-// 		{
-// 			std::string location = _server->getMap().find("location")->second;
-// 			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
-// 			std::string final_cgi =  cgi.substr(cgi.find("/"), cgi.length());
-// 			setEnv(pwd);
-// 			_content = handleCGI(final_cgi, pwd);
-// 			std::stringstream ss;
-// 			ss << (_content.size() - 2);
-// 			setContentLenght(ss.str());
-// 			free(_env);
-// 		}
-// 		else // is probably an html
-// 		{
-// 			int fileLen;
-// 			std::string tmp = std::string("\r\n");
-// 			file.seekg(0, std::ios::end); // move the file iter to the end of the file
-// 			fileLen = file.tellg();
-// 			if (fileLen != -1)
-// 				_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
-// 			else
-// 			{
-// 				file.close();
-// 				setStatusCode("400");
-// 			}
-// 			file.seekg(0, std::ios::beg); // go back to the start of the file
-// 			std::stringstream buffer;
-// 			buffer << file.rdbuf(); // read the entire file through stringstream
-// 			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
-// 			_content = tmp.append(_content, 0, _content.size());
-// 			std::cout << "[NEWBODY START]" << _content << "[NEWBODY END]" << std::endl;
-// 			std::stringstream ss;
-// 			ss << (_content.size() - 2);
-// 			setContentLenght(ss.str());
-// 		}
-// 	}
-// 	else
-// 	{
-// 		file.close();
-// 		setStatusCode("404");
-// 		// return ;
-// 	}
-// 	file.close();
-// 	setContentType(_path);
-// 	sendResponse();
-// }
-
 
 void ResponseHandler::setContent(std::string pwd)
 {
 	std::ifstream file;
 	std::string preQuestion;
 	size_t questPosition = _path.rfind('?');
-	if (_path == "/")
+	std::string fullPath;
+	if (_path == "/") {
 		file.open(_server->getIndex());
-	else if (questPosition == std::string::npos)
+		_path = _server->getIndex();
+		fullPath = _path;
+	}
+	else if (questPosition == std::string::npos){
 		file.open("." + _path);
+		fullPath = "." + _path;
+
+	}
 	else {
 		_postQuestionMark = _path.substr(questPosition + 1, _path.length() - questPosition);
 		preQuestion = _path.substr(0, questPosition);
 		file.open("." + preQuestion);
 		_path = preQuestion;
+		fullPath = "." + _path;
 	}
 	struct stat s;
-	std::string fullPath = "." + _path;
-	if (_path != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
+	if (fullPath != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
 	{
+		std::cout << RED << "DIOCANE" << std::endl << RESET;
 		file.close();
 		setStatusCode("404");
 	}
-	if ((file.is_open() && !(s.st_mode & S_IFDIR)) || _path == "/") // check if file is open or is a directory
+	if ((file.is_open() && !(s.st_mode & S_IFDIR))) // check if file is open or is a directory
 	{
-		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
+		size_t dotPos = fullPath.rfind('.'); // indicates where the dot in the path is located
 		std::string type; // extension of the response file
 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
-			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
+			type = fullPath.substr(dotPos, fullPath.size() - dotPos); // take the path from the dot onwards
 		else type = "";
 		if (_request && _request->getMethod() == "DELETE") // method DELETE
 		{
 			//std::cout << "Ci vado? Ci vado." << std::endl;
-			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
+			if (remove(fullPath.c_str()) == 0) // try to delete the file inside of the filesys
 				_content = "\r\n<h1>File deleted successfully</h1>";
 			else
 				_content = "\r\n<h1>Unable to delete the file</h1>";
@@ -437,7 +362,6 @@ void ResponseHandler::setContent(std::string pwd)
 			std::stringstream ss;
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
-			free(_env);
 		}
 		else // GET METHOD
 		{
@@ -468,7 +392,6 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 {
 	std::string _contentType;
 
-	std::cout << _path << std::endl;
 	if (type != "")
 	{
 		_contentType = type;
@@ -497,7 +420,6 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	else
 		_contentType = "text/plain";
 	_headers["Content-Type"] = _contentType;
-	// std::cout << _contentType << std::endl;
 }
 
 std::string	trimUselessChar(std::string contentType) {
