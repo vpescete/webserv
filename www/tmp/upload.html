@@ -3,3 +3,32 @@
   <input id="file1" type="file" name="file1">
   <button type="submit" name="button">Carica il file con Python!<br> </button>
 </form>
+
+<form id="deleteForm" action="/delete-resource" method="post">
+  <!-- Aggiungi un campo nascosto per indicare il metodo DELETE -->
+  <input type="hidden" name="_method" value="DELETE">
+  <button type="submit">Elimina Risorsa</button>
+</form>
+
+<script>
+  document.getElementById('deleteForm').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    // Effettua una richiesta DELETE tramite fetch o altre librerie di rete
+    fetch('/uploads/', {
+      method: 'DELETE',
+      // Aggiungi eventuali header o corpo della richiesta, se necessario
+    })
+    .then(response => {
+      // Gestisci la risposta del server
+      if (response.ok) {
+        console.log('Risorsa eliminata con successo');
+      } else {
+        console.error('Errore durante l\'eliminazione della risorsa');
+      }
+    })
+    .catch(error => {
+      console.error('Errore nella richiesta:', error);
+    });
+  });
+</script>
