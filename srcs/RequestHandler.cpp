@@ -43,7 +43,7 @@ std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::
 				value = temp2.substr(start + 1, end - start - 2);
 				// removeWhitespace(key);
 				// removeWhitespace(value);
-				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
+				// std::cout << GREEN << key << " | " << RED << value << RESET << std::endl;
 				if (key == "Content-Type")
 					_flag = true;
 			}
@@ -76,29 +76,24 @@ void RequestHandler::postMethod(std::string::size_type start, std::string::size_
 			}
 			temp2 = temp2.substr(end + 1);
 		}
-		if (headerEnd[0] == '-') {
-			uploadNoImage(start, end, key, value, headerEnd);
-		}
-		else {
-			// std::cout << CYAN << headerEnd << RESET << std::endl;
-			_body = headerEnd;
-			_mapHeader.insert(std::pair<std::string, std::string>("Body", _body));
-		}
-		// std::cout << GREEN << _bodyEnd << RESET << std::endl;
+		_body = headerEnd;
+		_mapHeader.insert(std::pair<std::string, std::string>("Body", _body));
 	}
 }
 
 void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
 	// int j = 0;
 	// int k = 0;
+	// std::cout << GREEN << headerEnd << RESET << std::endl;
 	std::string bodyStart = headerEnd + 2;
+	// std::cout << CYAN << bodyStart << RESET << std::endl;
 	// bool flag = false;
 	(void)start;
 	(void)end;
 	(void)key;
 	(void)value;
 	if (bodyStart.length() > 0) {
-		_mapHeader.insert(std::pair<std::string, std::string>("Body", bodyStart));
+		_mapHeader.insert(std::pair<std::string, std::string>("Body", headerEnd));
 		_body = bodyStart;
 	}
 	//std::cout << CYAN << _mapHeader.at("Body") << RESET << std::endl;
@@ -149,8 +144,9 @@ void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::si
 	// std::cout << BLUE << _bodyEnd << RESET << std::endl;
 // }
 
-void	RequestHandler::parsereq(std::string buffer) {
+void	RequestHandler::parsereq(std::string buffer, size_t size) {
 	// std::cout << CYAN << buffer << RESET << std::endl;
+	// (void)size;
 	unsigned long i = 0;
 	std::string temp;
 	while (buffer[i] != '\n' && i < buffer.length()) {
@@ -197,10 +193,34 @@ void	RequestHandler::parsereq(std::string buffer) {
 	{
 		const char* headerEnd = strstr(buffer.c_str(), "\r\n\r\n");
 		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
+		// std::cout << RED << temp2 << RESET << std::endl;
 		postMethod(start, end, temp2, key, value, headerEnd);
 	}
-	// temp = NULL;
-	// free(temp);
+
+
+
+
+
+	std::istringstream resp(buffer);
+	std::string header;
+	std::string::size_type index;
+	size_t n = 2;
+	while (std::getline(resp, header) && header != "\r") {
+		size_t pos = 0;
+		while ((pos = header.find(13)) != std::string::npos)
+			header.erase(pos);
+		index = header.find(':', 0);
+		if(index != std::string::npos)
+		{
+			std::pair<std::string, std::string> tmp = std::make_pair(header.substr(0, index), header.substr(index + 2));
+			_headerMap.insert(tmp);
+		}
+		else
+			_headerMap.insert(std::make_pair("Method", header));
+		n += header.size() + 2;
+	}
+	if (size > n)
+		_headerMap.insert(std::make_pair("Body", buffer.substr(n, size - n)));
 }
 
 std::string RequestHandler::getPath() {
@@ -213,6 +233,10 @@ std::string RequestHandler::getProtocol() {
 
 std::map<std::string, std::string> RequestHandler::getHeaders() {
 	return (_mapHeader);
+}
+
+std::map<std::string, std::string> RequestHandler::getHeadersMap() {
+	return (_headerMap);
 }
 
 

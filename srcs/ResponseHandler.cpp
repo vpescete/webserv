@@ -7,8 +7,8 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int 
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
 	_postQuestionMark = "";
-	setContentType(_path);
 	setContent(pwd);
+	setContentType(_path);
 }
 
 ResponseHandler::~ResponseHandler()
@@ -83,17 +83,15 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
-	for	(int i = 0; _env[i]; i++)
-		std::cout << "\t" << CYAN << _env[i] << RED << "$" << RESET << std::endl;
 
 	FILE* fileIn = tmpfile();
 	FILE* fileOut = tmpfile();
 	int fdIn = fileno(fileIn);
 	int fdOut = fileno(fileOut);
 	int		ret = 1;
-	lseek(fdIn, 0, SEEK_SET);
 	// Scrivi il corpo della richiesta prima di fork
 	write(fdIn, _request->getTrueBody().c_str(), _request->getTrueBody().size());
+	lseek(fdIn, 0, SEEK_SET);
 	// printFileContents(fdIn);
 	// Fork di un nuovo processo
 	pid = fork();
@@ -104,7 +102,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	if (pid == 0) {    // Questo è il processo figlio
 		dup2(fdIn, STDIN_FILENO);
 		dup2(fdOut, STDOUT_FILENO);
-		const char* pyArgs[] = {scriptPath.c_str(), absolutPath.c_str(), NULL};
+		const char* pyArgs[] = {scriptPath.c_str(), _path.substr(1).c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
 		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		perror("Error");
@@ -278,7 +276,7 @@ void ResponseHandler::sendResponse()
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
-		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		std::string response = makeResponse(statuscode, content);
 		// std::cout << RED << response << RESET << std::endl;
 		send(_clientSocket, response.c_str(), response.length(), 0);
@@ -298,7 +296,7 @@ void ResponseHandler::sendResponse()
 		std::string response = makeResponse(statuscode, content);
 		// std::cout << RED << response << RESET << std::endl;
 
-		// std::string response_2 = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
+		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		// std::cout << RED << response << " | " << CYAN << response_2 << std::endl;
 		do {
 			temp = response.substr(0, 35000);
@@ -407,8 +405,10 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 	size_t dotPos = path.rfind(".");
 	if (dotPos != std::string::npos)
 		type = path.substr(dotPos + 1, path.size() - dotPos); // get the end of the path from "."
-	else
+	else{
 		type = "";
+		_contentType = type;
+	}
 	// pretty self-explicatory from this point onwards
 	if ((type == "html") || _request->getMethod() == "DELETE")
 		_contentType = "text/html";
@@ -426,20 +426,34 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
-	if (_request->getBool() == true)
-		_headers["Content-Type"] = _request->getHeaders().at("Content-Type");
+	// if (_request->getBool() == true)
+	// 	_headers["Content-Type"] = _request->getHeaders().at("Content-Type");
+}
+
+std::string	trimUselessChar(std::string contentType) {
+	// Rimuovi spazi dall'inizio della stringa
+    size_t startPos = contentType.find_first_not_of(" \r\n");
+    if (startPos != std::string::npos) {
+        contentType.erase(0, startPos);
+    }
+
+    // Rimuovi spazi dalla fine della stringa
+    size_t endPos = contentType.find_last_not_of(" \r\n");
+    if (endPos != std::string::npos) {
+        contentType.erase(endPos + 1);
+    }
+	return contentType;
 }
 
 void ResponseHandler::setEnv(std::string envpwd) {
-	std::map<std::string, std::string>	headers = _headers;
+	std::map<std::string, std::string>	headers = _request->getHeadersMap();
 	std::map<std::string, std::string>	env;
+	std::string contentType = trimUselessChar(headers["Content-Type"]);
 	std::string path = _path.substr(1);
 	int i=0;
 
-	// std::cout << RED <<  "[DEBUG Truebody] " << _request->getTrueBody() << RESET << std::endl;
-	// std::cout << CYAN << "[DEBUG lenght True Body] " << _request->getTrueBody().length() << RESET << std::endl;
 	env["CONTENT_LENGTH"] = std::to_string(_request->getTrueBody().length());
-	env["CONTENT_TYPE"] = headers["Content-Type"].substr(1);
+	env["CONTENT_TYPE"] = contentType;
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 	env["HTTP_COOKIE"] = "";
 	env["PATH_INFO"] = path;
@@ -458,7 +472,6 @@ void ResponseHandler::setEnv(std::string envpwd) {
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "Webserv/1.0";
 	env["UPLOAD_PATH"] =  envpwd + "/uploads/";
-
 
 	std::string tmp;
 	_env = (char **)malloc(sizeof(char*)*env.size() + 1);

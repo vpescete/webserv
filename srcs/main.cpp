@@ -81,19 +81,19 @@ int	main(int ac, char *av[], char **env) {
 				kevent(kQueue, (*srvs[index]).getKevent(), 1, NULL, 0, NULL);
 			}
 			else if (events[i].filter == EVFILT_READ) {
-				//size_t totalBytesRead = 0;
+				size_t totalBytesRead = 0;
 				int bytesRead = 0;
 				index = getRightSocketFd(srvs, client.getRightConnection(events[i].ident)->evIdent);
 				char buff[8192];
 				do {
 					bytesRead = recv(events[i].ident, buff, 8192, 0);
-					//totalBytesRead += bytesRead;
+					totalBytesRead += bytesRead;
 					if (bytesRead > 0) {
 						bufferStr.append(buff, bytesRead);
 					}
 					usleep(100);
 				} while (bytesRead > 0);
-				req.parsereq(bufferStr);
+				req.parsereq(bufferStr, totalBytesRead);
 				// autoindex working flawlessy (remember to thank pier also) but the "/autoindex/" below is to be changed based on the configuration file
 				std::ifstream fdopenFile((*srvs[index]).getIndex().c_str(), O_RDONLY | O_NONBLOCK);
 				if (((req.getMethod() == "GET" && req.getPath().rfind("/autoindex/") != std::string::npos) && req.autoIndex(events[i].ident)) || (!fdopenFile.is_open())) {

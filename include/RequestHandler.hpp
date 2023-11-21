@@ -12,17 +12,20 @@ class RequestHandler {
 		std::string _path;
 		std::string _protocol;
 		std::map <std::string, std::string> _mapHeader;
+		std::map <std::string, std::string> _headerMap;
 		std::string _body;
 		std::map <std::string, std::string> _mapBody;
+		// std::map<std::string, std::string> _headersMap;
 		std::vector<std::map<std::string, LocationPath> > _locationPathMap;
 	public:
 		RequestHandler();
 		~RequestHandler();
-		void parsereq(std::string buffer);
+		void parsereq(std::string buffer, size_t size);
 		std::string getMethod();
 		std::string getPath();
 		std::string getProtocol();
 		std::map<std::string, std::string> getHeaders();
+		std::map<std::string, std::string> getHeadersMap();
 		void setResponse(Server* svr, int clientSocket, std::string pwd);
 		bool autoIndex(int clientSocket);
 		std::string getTrueBody();
