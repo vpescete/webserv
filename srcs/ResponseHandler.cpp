@@ -1,4 +1,6 @@
 #include "ResponseHandler.hpp"
+#include <dirent.h>
+#include <unistd.h>
 
 ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd)
 	: _server(_server), _request(_request), _clientSocket(_cs)
@@ -69,7 +71,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		dup2(fdOut, STDOUT_FILENO);
 		const char* pyArgs[] = {scriptPath.c_str(), _path.substr(1).c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
-		std::cout << RED << "Error: execve fail" << RESET << std::endl;
+		//std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		perror("Error");
 		exit(EXIT_FAILURE);
 	}
@@ -232,7 +234,7 @@ void ResponseHandler::sendResponse()
 		{
 			std::stringstream buffer;
 			buffer << file.rdbuf();
-			_content = buffer.str(); 
+			_content = buffer.str();
 		}
 		std::string response = makeResponse(statuscode);
 		do {
@@ -246,12 +248,32 @@ void ResponseHandler::sendResponse()
 }
 
 
+void deleteFilesInFolder(const std::string& folderPath) {
+	DIR* dir = opendir(folderPath.c_str());
+	if (dir != NULL) {
+		dirent* entry;
+		while ((entry = readdir(dir)) != NULL) {
+			if (entry->d_type == DT_REG) {  // Solo file regolari
+				std::string filePath = folderPath + "/" + entry->d_name;
+				if (unlink(filePath.c_str()) != 0) {
+					std::cerr << "Errore durante l'eliminazione del file: " << filePath << std::endl;
+				}
+			}
+		}
+		closedir(dir);
+	} else {
+		std::cerr << "Errore durante l'apertura della cartella: " << folderPath << std::endl;
+	}
+}
+
 void ResponseHandler::setContent(std::string pwd)
 {
 	std::ifstream file;
 	std::string preQuestion;
 	size_t questPosition = _path.rfind('?');
 	std::string fullPath;
+
+
 	if (_path == "/") {
 		file.open(_server->getIndex());
 		_path = _server->getIndex();
@@ -275,7 +297,7 @@ void ResponseHandler::setContent(std::string pwd)
 		file.close();
 		setStatusCode("404");
 	}
-	if ((file.is_open() && !(s.st_mode & S_IFDIR))) // check if file is open or is a directory
+	if ((file.is_open() || !(s.st_mode & S_IFDIR))) // check if file is open or is a directory
 	{
 		size_t dotPos = fullPath.rfind('.'); // indicates where the dot in the path is located
 		std::string type; // extension of the response file
@@ -284,10 +306,8 @@ void ResponseHandler::setContent(std::string pwd)
 		else type = "";
 		if (_request && _request->getMethod() == "DELETE") // method DELETE
 		{
-			if (remove(fullPath.c_str()) == 0) // try to delete the file inside of the filesys
-				_content = "\r\n<h1>File deleted successfully</h1>";
-			else
-				_content = "\r\n<h1>Unable to delete the file</h1>";
+			std::string pathToDelete = pwd + _path;
+			deleteFilesInFolder(pathToDelete);
 			std::stringstream ss;
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
@@ -319,6 +339,7 @@ void ResponseHandler::setContent(std::string pwd)
 	}
 	else
 	{
+		std::cout << "NON CI VADO" << std::endl;
 		file.close();
 		setStatusCode("404");
 	}
@@ -363,16 +384,16 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 
 std::string	trimUselessChar(std::string contentType) {
 	// Rimuovi spazi dall'inizio della stringa
-    size_t startPos = contentType.find_first_not_of(" \r\n");
-    if (startPos != std::string::npos) {
-        contentType.erase(0, startPos);
-    }
+	size_t startPos = contentType.find_first_not_of(" \r\n");
+	if (startPos != std::string::npos) {
+		contentType.erase(0, startPos);
+	}
 
-    // Rimuovi spazi dalla fine della stringa
-    size_t endPos = contentType.find_last_not_of(" \r\n");
-    if (endPos != std::string::npos) {
-        contentType.erase(endPos + 1);
-    }
+	// Rimuovi spazi dalla fine della stringa
+	size_t endPos = contentType.find_last_not_of(" \r\n");
+	if (endPos != std::string::npos) {
+		contentType.erase(endPos + 1);
+	}
 	return contentType;
 }
 
