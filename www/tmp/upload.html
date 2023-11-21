@@ -1,5 +1,226 @@
-<form action="./upload.py" method="post" enctype="multipart/form-data">
-  <label for="file">Clicca qui per cercare il file</label>
-  <input id="file1" type="file" name="file1">
-  <button type="submit" name="button">Carica il file con Python!<br> </button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #b8e994; /* Verde chiaro */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center; /* Centra l'intero contenuto del corpo */
+    }
+
+    form {
+      max-width: 400px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin: auto; /* Centra il form */
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 1.2em;
+      color: #3498db; /* Colore azzurro */
+      cursor: pointer;
+    }
+
+    label:hover {
+      text-decoration: underline;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #file-label {
+      display: block;
+      margin: 10px 0;
+      font-size: 1em;
+    }
+
+    .upload-icon {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #27ae60; /* Verde scuro */
+      color: #fff;
+      padding: 10px 20px;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #219653; /* Tonalità più scura del verde */
+    }
+
+    .cloud {
+    width: 350px; height: 120px;
+
+    background: #FFF;
+    background: linear-gradient(top, #FFF 100%);
+    background: -webkit-linear-gradient(top, #FFF 100%);
+    background: -moz-linear-gradient(top, #FFF 100%);
+    background: -ms-linear-gradient(top, #FFF 100%);
+    background: -o-linear-gradient(top, #FFF 100%);
+
+    border-radius: 100px;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
+
+    position: absolute;
+    margin: 120px auto 20px;
+    z-index:-1;
+    transition: ease 1s;
+  }
+
+  .cloud:after, .cloud:before {
+    content: '';
+    position: absolute;
+    background: #FFF;
+    z-index: -1
+  }
+
+  .cloud:after {
+    width: 100px; height: 100px;
+    top: -50px; left: 50px;
+
+    border-radius: 100px;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
+  }
+
+  .cloud:before {
+    width: 180px; height: 180px;
+    top: -90px; right: 50px;
+
+    border-radius: 200px;
+    -webkit-border-radius: 200px;
+    -moz-border-radius: 200px;
+  }
+
+  .x1 {
+    top:-50px;
+    left:100px;
+    -webkit-transform: scale(0.3);
+    -moz-transform: scale(0.3);
+    transform: scale(0.3);
+    opacity: 0.9;
+    -webkit-animation: moveclouds 15s linear infinite;
+    -moz-animation: moveclouds 15s linear infinite;
+    -o-animation: moveclouds 15s linear infinite;
+  }
+
+  .x1_5{
+    top:-80px;
+    left:250px;
+    -webkit-transform: scale(0.3);
+    -moz-transform: scale(0.3);
+    transform: scale(0.3);
+    -webkit-animation: moveclouds 17s linear infinite;
+    -moz-animation: moveclouds 17s linear infinite;
+    -o-animation: moveclouds 17s linear infinite;
+  }
+
+  .x2 {
+    left: 250px;
+    top:30px;
+    -webkit-transform: scale(0.6);
+    -moz-transform: scale(0.6);
+    transform: scale(0.6);
+    opacity: 0.6;
+    -webkit-animation: moveclouds 25s linear infinite;
+    -moz-animation: moveclouds 25s linear infinite;
+    -o-animation: moveclouds 25s linear infinite;
+  }
+
+  .x3 {
+    left: 250px; bottom: -70px;
+
+    -webkit-transform: scale(0.6);
+    -moz-transform: scale(0.6);
+    transform: scale(0.6);
+    opacity: 0.8;
+
+    -webkit-animation: moveclouds 25s linear infinite;
+    -moz-animation: moveclouds 25s linear infinite;
+    -o-animation: moveclouds 25s linear infinite;
+  }
+
+  .x4 {
+    left: 470px; botttom: 20px;
+
+    -webkit-transform: scale(0.75);
+    -moz-transform: scale(0.75);
+    transform: scale(0.75);
+    opacity: 0.75;
+
+    -webkit-animation: moveclouds 18s linear infinite;
+    -moz-animation: moveclouds 18s linear infinite;
+    -o-animation: moveclouds 18s linear infinite;
+  }
+
+  .x5 {
+    left: 200px; top: 300px;
+
+    -webkit-transform: scale(0.5);
+    -moz-transform: scale(0.5);
+    transform: scale(0.5);
+    opacity: 0.8;
+
+    -webkit-animation: moveclouds 20s linear infinite;
+    -moz-animation: moveclouds 20s linear infinite;
+    -o-animation: moveclouds 20s linear infinite;
+  }
+
+  @-webkit-keyframes moveclouds {
+    0% {margin-left: 1000px;}
+    100% {margin-left: -1000px;}
+  }
+  @-moz-keyframes moveclouds {
+    0% {margin-left: 1000px;}
+    100% {margin-left: -1000px;}
+  }
+  @-o-keyframes moveclouds {
+    0% {margin-left: 1000px;}
+    100% {margin-left: -1000px;}
+  }
+  </style>
+</head>
+<body>
+  <div id="clouds">
+		<div class="cloud x1"></div>
+		<div class="cloud x1_5"></div>
+		<div class="cloud x2"></div>
+		<div class="cloud x3"></div>
+		<div class="cloud x4"></div>
+		<div class="cloud x5"></div>
+	</div>
+  <form action="./upload.py" method="post" enctype="multipart/form-data">
+    <label for="file1">Clicca qui per cercare il file</label>
+    <input id="file1" type="file" name="file1" onchange="displayFileName()">
+    <div class="upload-icon">↑</div>
+    <div id="file-label">Nessun file selezionato</div>
+    <button type="submit" name="button">Carica il file con Python!</button>
+  </form>
+
+  <script>
+    function displayFileName() {
+      var input = document.getElementById('file1');
+      var label = document.getElementById('file-label');
+      label.textContent = input.files[0] ? 'File selezionato: ' + input.files[0].name : 'Nessun file selezionato';
+    }
+  </script>
+</body>
+</html>

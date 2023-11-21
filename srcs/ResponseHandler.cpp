@@ -10,43 +10,11 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int 
 	setContent(pwd);
 }
 
-ResponseHandler::~ResponseHandler()
-{
+ResponseHandler::~ResponseHandler() {
 }
 
-bool ResponseHandler::isDirectory(const std::string& path) {
-	struct stat info;
 
-	if (stat(path.c_str(), &info) != 0) {
-		// Non è possibile accedere alle informazioni del file/directory, quindi ritorna false
-		return false;
-	} else if (info.st_mode & S_IFDIR) {
-		// Il path corrisponde a una directory, quindi ritorna true
-		return true;
-	} else {
-		// Il path non corrisponde a una directory, quindi ritorna false
-		return false;
-	}
-}
-
-void printFileContents(int fd) {
-    char buffer[4096];  // Buffer di lettura
-    lseek(fd, 0, SEEK_SET);  // Imposta il cursore del file all'inizio
-
-    ssize_t bytesRead;
-    while ((bytesRead = read(fd, buffer, sizeof(buffer))) > 0) {
-        // Stampa i dati letti
-        std::cout.write(buffer, bytesRead);
-    }
-
-    if (bytesRead == -1) {
-        // Gestisci l'errore se la lettura fallisce
-        perror("read");
-    }
-}
-
-std::string ResponseHandler::makeResponse(int code)
-{
+std::string ResponseHandler::makeResponse(int code) {
 	std::string response("HTTP/1.1 ");
 
 	if (_content.size() - 2 == 0)
@@ -78,10 +46,6 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	std::string newBody;
 	pid_t pid;
 	std::string absolutPath = envpath + _path;
-
-	for	(int i = 0; _env[i]; i++)
-		std::cout << "\t" << CYAN << _env[i] << RED << "$" << RESET << std::endl;
-	std::cout << std::endl;
 
 	int saveStdin = dup(STDIN_FILENO);
 	int saveStdout = dup(STDOUT_FILENO);
@@ -129,14 +93,11 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	close(fdOut);
 	close(saveStdin);
 	close(saveStdout);
-
 	for (size_t i = 0; _env[i]; i++)
 		delete[] _env[i];
 	delete[] _env;
-
 	if (!pid)
 		exit(0);
-	
 	return newBody;
 }
 
@@ -185,20 +146,10 @@ LocationPath ResponseHandler::getLocationPath(std::string path)
 	return LocationPath();
 }
 
-// std::string ResponseHandler::getCurrentPath() const {
-// 	char buffer[FILENAME_MAX];
-// 	if (getcwd(buffer, FILENAME_MAX) != NULL) {
-// 		return std::string(buffer);
-// 	} else {
-// 		// Inserire pagina generica d'errore
-// 		return "";
-// 	}
-// }
-
 std::string ResponseHandler::getModifyPath(const std::string& requestPath, LocationPath& path) {
 	std::string modifiedPath = requestPath;
 
-	// Se la rotta ha una root specificata, sostituisci il percorso della rotta con la root nel percorso della richiesta
+	// Se la route ha una root specificata, sostituisci il percorso della rotta con la root nel percorso della richiesta
 	if (!path.getRoot().empty()) {
 		size_t pos = modifiedPath.find(path.getLocationPath());
 		if (pos != std::string::npos) {
@@ -225,8 +176,6 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 {
 	std::string method = _request->extractPath(requestPath);
 	LocationPath path = getLocationPath(requestPath);
-	// char cwd[9999];
-
 	// Controlla se è stato trovato un path: se non lo trova, imposta status di errore.
 	if (path.getLocationPath().empty()) {
 		setStatusCode("404");
@@ -253,7 +202,6 @@ void ResponseHandler::setPath(const std::string& requestPath, const std::string&
 		_path = getErrorPath();
 		return;
 	}
-
 	_path = responsePath;
 }
 
@@ -270,13 +218,11 @@ void ResponseHandler::sendResponse()
 		_path = getErrorPath();
 	if (_path == "/") {
 		std::ifstream file(_server->getIndex());
-		// if (file.is_open()) {
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
 		std::string response = makeResponse(statuscode);
 		send(_clientSocket, response.c_str(), response.length(), 0);
-		// }
 	}
 	else {
 		std::ifstream file("." + _path);
@@ -284,14 +230,11 @@ void ResponseHandler::sendResponse()
 		int dataSent = 0;
 		if (getContentType() == "image/png" || getContentType() == "image/jpeg")
 		{
-		// if (file.is_open()) {
 			std::stringstream buffer;
 			buffer << file.rdbuf();
 			_content = buffer.str(); 
 		}
 		std::string response = makeResponse(statuscode);
-
-		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		do {
 			temp = response.substr(0, 35000);
 			dataSent = send(_clientSocket, temp.c_str(), temp.length(), 0);
@@ -341,7 +284,6 @@ void ResponseHandler::setContent(std::string pwd)
 		else type = "";
 		if (_request && _request->getMethod() == "DELETE") // method DELETE
 		{
-			//std::cout << "Ci vado? Ci vado." << std::endl;
 			if (remove(fullPath.c_str()) == 0) // try to delete the file inside of the filesys
 				_content = "\r\n<h1>File deleted successfully</h1>";
 			else
@@ -379,7 +321,6 @@ void ResponseHandler::setContent(std::string pwd)
 	{
 		file.close();
 		setStatusCode("404");
-		// return ;
 	}
 	file.close();
 	setContentType(_path);
