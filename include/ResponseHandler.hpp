@@ -34,7 +34,7 @@ class ResponseHandler
 	public:
 		ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd);
 		~ResponseHandler();
-		std::string makeResponse(int code, std::string content);
+		std::string makeResponse(int code);
 		std::string getResponseCode(int code) const;
 		LocationPath getLocationPath(std::string path);
 		std::string getPath() const;

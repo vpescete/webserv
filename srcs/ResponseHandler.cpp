@@ -8,7 +8,6 @@ ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int 
 	setPath(_request->getPath(), _request->getMethod());
 	_postQuestionMark = "";
 	setContent(pwd);
-	setContentType(_path);
 }
 
 ResponseHandler::~ResponseHandler()
@@ -46,7 +45,7 @@ void printFileContents(int fd) {
     }
 }
 
-std::string ResponseHandler::makeResponse(int code, std::string content)
+std::string ResponseHandler::makeResponse(int code)
 {
 	std::string response("HTTP/1.1 ");
 
@@ -67,11 +66,11 @@ std::string ResponseHandler::makeResponse(int code, std::string content)
 	response.append(getContentType());
 	response.append("\r\n");
 	response.append("content-length: ");
-	response.append(std::to_string(content.length()));
+	response.append(std::to_string(_content.length()));
 	response.append("\r\n");
 	response.append(getDate());
 	response.append("\r\n\r\n");
-	response.append(content);
+	response.append(_content);
 	return response;
 }
 
@@ -261,21 +260,25 @@ void ResponseHandler::sendResponse()
 
 	ss << status;
 	ss >> statuscode;
+	// std::cout << _path << std::endl;
 	// std::string::size_type i = 0, j = 0;
+	// std::cout << RED << "[CONTENT]" << _content << RESET << std::endl;
 	if (status != "0" && status != "200")
 		_path = getErrorPath();
 	if (_path == "/") {
+		std::cout << "porcoddio 1" << std::endl;
 		std::ifstream file(_server->getIndex());
 		// if (file.is_open()) {
 		std::stringstream buffer;
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
 		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-		std::string response = makeResponse(statuscode, content);
+		std::string response = makeResponse(statuscode);
 		send(_clientSocket, response.c_str(), response.length(), 0);
 		// }
 	}
 	else {
+		std::cout << "porcoddio 2" << std::endl;
 		std::ifstream file("." + _path);
 		// if (file.is_open()) {
 		std::stringstream buffer;
@@ -283,7 +286,7 @@ void ResponseHandler::sendResponse()
 		std::string content = buffer.str();
 		std::string temp;
 		int dataSent = 0;
-		std::string response = makeResponse(statuscode, content);
+		std::string response = makeResponse(statuscode);
 
 		// std::string response = "HTTP/1.1 " + getStatusCode() + " " + _statusCodeMap.at(statuscode) + "\nContent-type:" + getContentType() + "\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
 		do {
@@ -295,6 +298,94 @@ void ResponseHandler::sendResponse()
 		} while (response.size());
 	}
 }
+
+// void ResponseHandler::setContent(std::string pwd)
+// {
+// 	std::ifstream file;
+// 	std::string preQuestion;
+// 	size_t questPosition = _path.rfind('?');
+// 	if (_path == "/")
+// 		file.open(_server->getIndex());
+// 	else if (questPosition == std::string::npos)
+// 		file.open("." + _path);
+// 	else {
+// 		_postQuestionMark = _path.substr(questPosition + 1, _path.length() - questPosition);
+// 		preQuestion = _path.substr(0, questPosition);
+// 		file.open("." + preQuestion);
+// 		_path = preQuestion;
+// 	}
+// 	struct stat s;
+// 	std::string fullPath = "." + _path;
+// 	std::string _content;
+// 	if (_path != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
+// 	{
+// 		file.close();
+// 		setStatusCode("404");
+// 	}
+// 	if ((file.is_open() && !(s.st_mode & S_IFDIR)) || _path == "/") // check if file is open or is a directory
+// 	{
+// 		size_t dotPos = _path.rfind('.'); // indicates where the dot in the path is located
+// 		std::string type; // extension of the response file
+// 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
+// 			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
+// 		else type = "";
+// 		if (_request && _request->getMethod() == "DELETE")
+// 		{
+// 			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
+// 				_content = "\r\n<h1>File deleted successfully</h1>";
+// 			else
+// 				_content = "\r\n<h1>Unable to delete the file</h1>";
+// 			std::stringstream ss;
+// 			ss << (_content.size() - 2);
+// 			setContentLenght(ss.str());
+// 		}
+// 		else if (type == ".py" || type == ".php") // file has to go through cgi
+// 		{
+// 			std::string location = _server->getMap().find("location")->second;
+// 			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
+// 			std::string final_cgi =  cgi.substr(cgi.find("/"), cgi.length());
+// 			setEnv(pwd);
+// 			_content = handleCGI(final_cgi, pwd);
+// 			std::stringstream ss;
+// 			ss << (_content.size() - 2);
+// 			setContentLenght(ss.str());
+// 			free(_env);
+// 		}
+// 		else // is probably an html
+// 		{
+// 			int fileLen;
+// 			std::string tmp = std::string("\r\n");
+// 			file.seekg(0, std::ios::end); // move the file iter to the end of the file
+// 			fileLen = file.tellg();
+// 			if (fileLen != -1)
+// 				_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
+// 			else
+// 			{
+// 				file.close();
+// 				setStatusCode("400");
+// 			}
+// 			file.seekg(0, std::ios::beg); // go back to the start of the file
+// 			std::stringstream buffer;
+// 			buffer << file.rdbuf(); // read the entire file through stringstream
+// 			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
+// 			_content = tmp.append(_content, 0, _content.size());
+// 			std::cout << "[NEWBODY START]" << _content << "[NEWBODY END]" << std::endl;
+// 			std::stringstream ss;
+// 			ss << (_content.size() - 2);
+// 			setContentLenght(ss.str());
+// 		}
+// 	}
+// 	else
+// 	{
+// 		file.close();
+// 		setStatusCode("404");
+// 		// return ;
+// 	}
+// 	file.close();
+// 	setContentType(_path);
+// 	sendResponse();
+// }
+
 
 void ResponseHandler::setContent(std::string pwd)
 {
@@ -313,7 +404,6 @@ void ResponseHandler::setContent(std::string pwd)
 	}
 	struct stat s;
 	std::string fullPath = "." + _path;
-	std::string _content;
 	if (_path != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
 	{
 		file.close();
@@ -326,8 +416,9 @@ void ResponseHandler::setContent(std::string pwd)
 		if (dotPos != std::string::npos) // npos is returned by rfind if there weren't any matches
 			type = _path.substr(dotPos, _path.size() - dotPos); // take the path from the dot onwards
 		else type = "";
-		if (_request && _request->getMethod() == "DELETE")
+		if (_request && _request->getMethod() == "DELETE") // method DELETE
 		{
+			//std::cout << "Ci vado? Ci vado." << std::endl;
 			if (remove(_path.c_str()) == 0) // try to delete the file inside of the filesys
 				_content = "\r\n<h1>File deleted successfully</h1>";
 			else
@@ -336,7 +427,7 @@ void ResponseHandler::setContent(std::string pwd)
 			ss << (_content.size() - 2);
 			setContentLenght(ss.str());
 		}
-		else if (type == ".py" || type == ".php") // file has to go through cgi
+		else if (type == ".py") // file has to go through cgi for the POST Upload
 		{
 			std::string location = _server->getMap().find("location")->second;
 			std::string cgi = location.substr(location.find("cgi_pass"),location.substr(location.find("cgi_pass"), location.find("}")).find("\n"));
@@ -348,23 +439,14 @@ void ResponseHandler::setContent(std::string pwd)
 			setContentLenght(ss.str());
 			free(_env);
 		}
-		else // is probably an html
+		else // GET METHOD
 		{
-			int fileLen;
 			std::string tmp = std::string("\r\n");
-			file.seekg(0, std::ios::end); // move the file iter to the end of the file
-			fileLen = file.tellg();
-			if (fileLen != -1)
-				_content.reserve(file.tellg()); // "allocate" enough memory in _content (tellg indicates current position in the file)
-			else
-			{
-				file.close();
-				setStatusCode("400");
-			}
-			file.seekg(0, std::ios::beg); // go back to the start of the file
-			std::stringstream buffer;
-			buffer << file.rdbuf(); // read the entire file through stringstream
-			_content = buffer.str(); // convert what has been read to std::string and assign it to _content
+			file.seekg(0, std::ios::end);
+			_content.reserve(file.tellg());
+			file.seekg(0, std::ios::beg);
+			_content.assign((std::istreambuf_iterator<char>(file)),
+				std::istreambuf_iterator<char>());
 			_content = tmp.append(_content, 0, _content.size());
 			std::stringstream ss;
 			ss << (_content.size() - 2);
@@ -378,6 +460,7 @@ void ResponseHandler::setContent(std::string pwd)
 		// return ;
 	}
 	file.close();
+	setContentType(_path);
 	sendResponse();
 }
 
@@ -385,6 +468,7 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 {
 	std::string _contentType;
 
+	std::cout << _path << std::endl;
 	if (type != "")
 	{
 		_contentType = type;
@@ -412,6 +496,8 @@ void ResponseHandler::setContentType(std::string path, std::string type)
 		_contentType = "image/bmp";
 	else
 		_contentType = "text/plain";
+	_headers["Content-Type"] = _contentType;
+	// std::cout << _contentType << std::endl;
 }
 
 std::string	trimUselessChar(std::string contentType) {
