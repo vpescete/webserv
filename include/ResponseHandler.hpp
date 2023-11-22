@@ -5,15 +5,18 @@
 
 class Server;
 class RequestHandler;
+class Configuration;
 
 class ResponseHandler
 {
 	private:
 		Server	*_server;
+		Configuration *_conf;
 		RequestHandler	*_request;
 		std::map<int, std::string>	_statusCodeMap;
 		std::map<std::string, std::string>	_headers;
 		char **_env;
+		long long	_maxBodySize;
 		std::string _path;
 		std::string _fullPath;
 		std::string _content;

@@ -118,3 +118,7 @@ std::string Configuration::getErrorPath(std::string errorCode) {
 		return DEFAULT_ERROR_PAGE;
 	}
 }
+
+std::string	Configuration::getMaxBodySize() {
+	return _map["max_body_size"];
+}

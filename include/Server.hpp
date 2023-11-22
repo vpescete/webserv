@@ -15,13 +15,14 @@ class Server {
 		Configuration	*_conf;
 		std::map<std::string, std::string> _map;
 		std::map<std::string, LocationPath> _locationPathMap;
+		std::string _maxBodySize;
 
 		// setter member
 		void	_setPort();
 		void	_setHost();
 		void	_setMap();
 		void	_setLocationPathMap();
-
+		void	_setMaxBodySize();
 		// socket
 		struct sockaddr_in _serverAddress;
 		struct kevent		_kevent;
@@ -46,6 +47,7 @@ class Server {
 		std::string		getIndex();
 		std::map<std::string, LocationPath> getLocationPathMap();
 		std::map<std::string, std::string> getMap();
+		std::string	getMaxBodySize();
 };
 
 #endif

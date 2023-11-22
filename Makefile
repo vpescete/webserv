@@ -8,7 +8,7 @@ OBJ		= $(patsubst srcs/%.cpp,objs/%.o,$(SRC))
 
 I		= include/
 CC		= c++
-FLAGS	= -Wall -Wextra -Werror -std=c++98 -I$I
+FLAGS	= -Wall -Wextra -Werror -std=c++98 -I$I -g
 RM		= rm -rf
 
 # Colors

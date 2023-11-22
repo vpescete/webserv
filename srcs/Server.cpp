@@ -92,6 +92,7 @@ void Server::serverConnection(int kQueue) {
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
 	_setLocationPathMap();
 	_setMap();
+	_setMaxBodySize();
 }
 
 void Server::serverDisconnection() {
@@ -126,10 +127,18 @@ void Server::_setMap() {
 	_map = getConf().getMap();
 }
 
+void Server::_setMaxBodySize() {
+	_maxBodySize = getConf().getMaxBodySize();
+}
+
 std::map<std::string, LocationPath> Server::getLocationPathMap() {
 	return _locationPathMap;
 }
 
 std::map<std::string, std::string> Server::getMap() {
 	return _map;
+}
+
+std::string Server:: getMaxBodySize() {
+	return _maxBodySize;
 }

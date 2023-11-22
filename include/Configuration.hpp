@@ -25,7 +25,7 @@ class Configuration {
 		std::map<std::string, std::string> getMap();
 		std::string	getServerName();
 		std::string	getErrorPath(std::string errorCode);
-
+		std::string	getMaxBodySize();
 };
 
 #endif

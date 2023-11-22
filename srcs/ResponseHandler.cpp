@@ -2,9 +2,19 @@
 #include <dirent.h>
 #include <unistd.h>
 
+
+long long stringToInt(const std::string str) {
+    std::istringstream iss(str);
+    long long result;
+    iss >> result;
+    return result;
+}
+
 ResponseHandler::ResponseHandler(Server *_server, RequestHandler *_request, int _cs, std::string pwd)
 	: _server(_server), _request(_request), _clientSocket(_cs)
 {
+	// Configuration *conf;
+	_maxBodySize = stringToInt(_server->getMaxBodySize());
 	setStatusCodeMap();
 	setDefaultHeaders();
 	setPath(_request->getPath(), _request->getMethod());
@@ -215,8 +225,9 @@ void ResponseHandler::sendResponse()
 	ss << status;
 	ss >> statuscode;
 
-	if (status != "0" && status != "200")
+	if (status != "0" && status != "200") {
 		_path = getErrorPath();
+	}
 	if (_path == "/") {
 		std::ifstream file(_server->getIndex());
 		std::stringstream buffer;
@@ -272,7 +283,11 @@ void ResponseHandler::setContent(std::string pwd)
 	size_t questPosition = _path.rfind('?');
 	std::string fullPath;
 
-
+	if ((long long)_request->getTrueBody().length() > _maxBodySize) {
+		setStatusCode("413");
+		sendResponse();
+		return ;
+	}
 	if (_path == "/") {
 		file.open(_server->getIndex());
 		_path = _server->getIndex();
