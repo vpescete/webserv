@@ -27,7 +27,7 @@ print("""\
   <style>
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #b8e994; /* Verde chiaro */
+      background-color: #B7ADCF; /* Verde chiaro */
       display: flex;
       align-items: center;
       justify-content: center;
