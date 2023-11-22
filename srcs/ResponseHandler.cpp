@@ -63,7 +63,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 	// Fork di un nuovo processo
 	pid = fork();
 	if (pid == -1) {
-		perror("fork");
+		std::cout << RED << "Error: fork fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	if (pid == 0) {    // Questo è il processo figlio
@@ -71,8 +71,7 @@ std::string ResponseHandler::handleCGI(const std::string& scriptPath, std::strin
 		dup2(fdOut, STDOUT_FILENO);
 		const char* pyArgs[] = {scriptPath.c_str(), _path.substr(1).c_str(), NULL};
 		execve(*pyArgs, const_cast<char **> (pyArgs), _env);
-		//std::cout << RED << "Error: execve fail" << RESET << std::endl;
-		perror("Error");
+		std::cout << RED << "Error: execve fail" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	else
@@ -339,7 +338,6 @@ void ResponseHandler::setContent(std::string pwd)
 	}
 	else
 	{
-		std::cout << "NON CI VADO" << std::endl;
 		file.close();
 		setStatusCode("404");
 	}
