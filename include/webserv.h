@@ -10,7 +10,7 @@
 # define CYAN "\e[0;36m"
 # define RESET "\e[0m"
 
-// MACRO 
+// MACRO
 # define DEFAULT_PATH "conf/server.conf"
 # define DEFAULT_ERROR_PAGE "errors/500.html"
 # define MAXEVENTS 1024
@@ -38,7 +38,7 @@
 # include <signal.h>
 # include <stdlib.h>
 # include <dirent.h>
-
+# include <assert.h>
 
 // C++ Library
 # include <iostream>
@@ -62,5 +62,6 @@
 # include "LocationPath.hpp"
 # include "RequestHandler.hpp"
 # include "Clients.hpp"
+# include "ResponseHandler.hpp"
 
 #endif

@@ -1,8 +1,10 @@
 NAME	= webserv
 
-SRC		= srcs/main.cpp srcs/ParserConf.cpp srcs/Server.cpp srcs/Configuration.cpp srcs/LocationPath.cpp srcs/RequestHandler.cpp srcs/Clients.cpp
+SRC		= srcs/main.cpp srcs/ParserConf.cpp srcs/Server.cpp \
+			srcs/Configuration.cpp srcs/LocationPath.cpp \
+			srcs/RequestHandler.cpp srcs/Clients.cpp srcs/ResponseHandler.cpp \
 
-OBJ		= $(SRC:.cpp=.o)
+OBJ		= $(patsubst srcs/%.cpp,objs/%.o,$(SRC))
 
 I		= include/
 CC		= c++
@@ -18,7 +20,8 @@ CURSIVE	= \e[33;3m
 
 .PHONY: all clean fclean re
 
-%.o: %.cpp
+objs/%.o: srcs/%.cpp
+	@mkdir -p objs
 	@$(CC) $(FLAGS) -c $< -o $@
 
 all: $(NAME)
@@ -37,5 +40,6 @@ clean:
 fclean: clean
 	@$(RM) $(NAME)
 	@printf "$(YELLOW) - Executable removed.$(RESET)\n"
+	@rm -rf objs
 
 re: fclean all

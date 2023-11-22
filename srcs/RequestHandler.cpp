@@ -4,90 +4,17 @@ RequestHandler::RequestHandler(){}
 
 RequestHandler::~RequestHandler(){}
 
-std::string RequestHandler::get_deleteMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value) {
-	while (end < temp2.size())
-		{
-			start = temp2.find(':', 0);
-			end = temp2.find('\n', 0);
-			if(end != std::string::npos) {
-				key = temp2.substr(0, start);
-				value = temp2.substr(start + 1, end - start - 2);
-				removeWhitespace(key);
-				removeWhitespace(value);
-				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-			}
-			temp2 = temp2.substr(end + 1);
-		}
-	return temp2;
+std::string RequestHandler::getTrueBody() {
+	return _headerMap["Body"];
 }
 
-void RequestHandler::postMethod(std::string::size_type start, std::string::size_type end, std::string temp2, std::string key, std::string value, const char* headerEnd){
-	int k = 0;
-	while ((headerEnd[k] == '\n' || headerEnd[k] == '\r') && headerEnd[k] != '\0')
-		headerEnd++;
-	if (headerEnd != NULL) {
-		// Parse and print the headers
-		// std::cout << headerEnd << std::endl;
-		while (end < temp2.size())
-		{
-			start = temp2.find(':', 0);
-			end = temp2.find('\n', 0);
-			if(end != std::string::npos) {
-				key = temp2.substr(0, start);
-				value = temp2.substr(start + 1, end - start - 1);
-				removeWhitespace(key);
-				removeWhitespace(value);
-				_mapHeader.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-			}
-			temp2 = temp2.substr(end + 1);
-		}
-		if (headerEnd[0] == '-') {
-			uploadNoImage(start, end, key, value, headerEnd);
-		}
-		else
-			_bodyEnd = headerEnd;
-	}
+std::string RequestHandler::getMethod() {
+	return (_method);
 }
 
-void	RequestHandler::uploadNoImage(std::string::size_type start, std::string::size_type end, std::string key, std::string value, const char* headerEnd) {
-	int j = 0;
-	std::string bodyStart = headerEnd + 4;
-	if (bodyStart.length() > 0) {
-		while(bodyStart[j] != '\n' && bodyStart[j] != '\0') 
-			j++;
-		_bodyStart = bodyStart.substr(0, j);
-		end = 0;
-		bodyStart = bodyStart.substr(j + 1, bodyStart.length() - j);
-		while (end < bodyStart.size())
-		{
-			start = bodyStart.find(':', 0);
-			end = bodyStart.find('\n', 0);
-			if (bodyStart[0] == '\r')
-				break;
-			if(end != std::string::npos) {
-				key = bodyStart.substr(0, start);
-				value = bodyStart.substr(start + 2, end - start - 2);
-				removeWhitespace(key);
-				removeWhitespace(value);
-				_mapBody.insert(std::pair<std::string, std::string>(key, value));
-				// std::cout << RED << key << YELLOW << " : " << GREEN << value << RESET << std::endl;
-			}
-			bodyStart = bodyStart.substr(end + 1, bodyStart.length() - end);
-		}
-	j = 0;
-	while (bodyStart[j] == '\n' || bodyStart[j] == '\r')
-		j++;
-	bodyStart = bodyStart.substr(j, bodyStart.length() - j - 2);
-	_bodyEnd = bodyStart;
-	}
-}
-
-void	RequestHandler::parsereq(std::string buffer) {
+void	RequestHandler::parsereq(std::string buffer, size_t size) {
 	unsigned long i = 0;
 	std::string temp;
-	std::cout << RED << buffer << RESET << std::endl;
 	while (buffer[i] != '\n' && i < buffer.length()) {
 		while (buffer[i] != ' ' && i < buffer.length()) {
 			temp += buffer[i];
@@ -110,36 +37,31 @@ void	RequestHandler::parsereq(std::string buffer) {
 		_protocol = temp;
 		temp.clear();
 	}
-	// second parser of the request to put all handler in a map
-	std::string::size_type start = 0;
-	std::string::size_type end = 0;
-	std::string key;
-	std::string value;
-	std::string temp2;
-	// std::cout << GREEN << "[DEBUG METHOD]" << buffer.substr(0, i) << RESET << std::endl;
-	// std::cout << RED << "[DEBUG METHOD]" << buffer.substr(0, i) << RESET << std::endl;
-	if (i + 1 < buffer.length())
-		temp2 = buffer.substr(i + 1, buffer.length());
-	else {
-		temp2 = "";
-		return ;
-	}
-	// std::cout << YELLOW << buffer << RESET << std::endl;
-	if (_method == "GET" || _method == "DELETE") {
-		get_deleteMethod(start,end, temp2, key, value);
-	}
-	else if (_method == "POST")
-	{
-		const char* headerEnd = strstr(buffer.c_str(), "\r\n\r\n");
-		temp2 = buffer.substr(i + 1, buffer.length() - strlen(headerEnd));
-		postMethod(start, end, temp2, key, value, headerEnd);
-	}
-	// temp = NULL;
-	// free(temp);
-}
 
-std::string RequestHandler::getMethod() {
-	return (_method);
+	std::istringstream resp(buffer);
+	std::string header;
+	std::string::size_type index;
+	size_t n = 2;
+	while (std::getline(resp, header) && header != "\r") {
+		size_t pos = 0;
+		while ((pos = header.find(13)) != std::string::npos)
+			header.erase(pos);
+		index = header.find(':', 0);
+		if(index != std::string::npos)
+		{
+			std::pair<std::string, std::string> tmp = std::make_pair(header.substr(0, index), header.substr(index + 2));
+			if (_headerMap.find("Cookie") != _headerMap.end()
+				&& tmp.first == "Cookie")
+				_headerMap["Cookie"].append("; " + tmp.second);
+			else
+				_headerMap.insert(tmp);
+		}
+		else
+			_headerMap.insert(std::make_pair("Method", header));
+		n += header.size() + 2;
+	}
+	if (size > n)
+		_headerMap.insert(std::make_pair("Body", buffer.substr(n, size - n)));
 }
 
 std::string RequestHandler::getPath() {
@@ -150,43 +72,13 @@ std::string RequestHandler::getProtocol() {
 	return (_protocol);
 }
 
-void	RequestHandler::setResponse(Server* svr, int clientSocket) {
-	std::cout << BLUE << _method << "  " << _path << "  " << _protocol << RESET << std::endl;
-	if (_path == "/") {
-		std::ifstream file(svr->getIndex());
-		if (file.is_open()) {
-			std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string content = buffer.str();
-			std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			send(clientSocket, response.c_str(), response.length(), 0);
-			
-		}
-		else {
-			std::ifstream file("./errors/404.html");
-			std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string content = buffer.str();
-			// std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			// send(clientSocket, response.c_str(), response.length(), 0);
-			std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length:  " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			send(clientSocket, response.c_str(), response.length(), 0);
-		}
-		// Read and send the file requested from the path in the request
-	}
-	else {
-		std::ifstream file("." + _path);
-		if (file.is_open()) {
-			std::stringstream buffer;
-			buffer << file.rdbuf();
-			std::string content = buffer.str();
-			std::string response = "HTTP/1.1 200 OK\r\nContent-Length: " + std::to_string(content.length()) + "\r\n\r\n" + content;
-			send(clientSocket, response.c_str(), response.length(), 0);
-		} else {
-			std::string response = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n";
-			send(clientSocket, response.c_str(), response.length(), 0);
-		}
-	}
+std::map<std::string, std::string> RequestHandler::getHeadersMap() {
+	return (_headerMap);
+}
+
+
+void	RequestHandler::setResponse(Server* svr, int clientSocket, std::string pwd) {
+	ResponseHandler res = ResponseHandler(svr, this, clientSocket, pwd);
 }
 
 bool	RequestHandler::autoIndex(int clientSocket) {
@@ -199,6 +91,7 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 	std::string bodyText;
 	std::string afterBody;
 	std::string lengthContent;
+	std::string::size_type i = 0, j = 0;
 	int contentLength = beforeBody.length() - 2;
 	DIR* dir;
 	struct dirent *entry;
@@ -219,9 +112,24 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 	contentLength += afterBody.length() -1;
 	ss << contentLength;
 	ss >> lengthContent;
-	// std::cout << BLUE << autoInd << RED << lengthContent << GREEN << beforeBody << CYAN << bodyText << YELLOW << afterBody << RESET << std::endl;
 	autoInd = autoInd + lengthContent + beforeBody + bodyText + afterBody;
 	closedir(dir);
-	send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
+	while(i < autoInd.length()) {
+		i += send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
+		j = i;
+		if (j == i + 1)
+			break;
+	}
 	return true;
+}
+
+std::string RequestHandler::extractPath(const std::string& requestLine) {
+	std::string path = requestLine;
+
+	size_t pos = requestLine.find('?');
+	if (pos != std::string::npos) {
+		path = path.substr(0, pos);  // Rimuovi la stringa di query dal percorso
+	}
+
+	return path;
 }

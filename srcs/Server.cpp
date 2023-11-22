@@ -32,10 +32,15 @@ sockaddr_in *Server::getServerAddress() {
 	return &_serverAddress;
 }
 
+Configuration &Server::getConf() {
+	return *_conf;
+}
+#pragma endregion
+
 void Server::SocketException() {
 	try {
 		if (_socketFD == -1)
-			throw std::exception(); 
+			throw std::exception();
 	} catch (std::exception & e) {
 		std::cout << RED << "Error while opening the socket" << RESET << std::endl;
 		exit(EXIT_FAILURE);
@@ -43,6 +48,7 @@ void Server::SocketException() {
 }
 
 void Server::serverConnection(int kQueue) {
+	(void)kQueue;
 	_socketFD = socket(AF_INET, SOCK_STREAM, 0);
 	this->SocketException();
 	_serverAddress.sin_family = AF_INET;
@@ -65,19 +71,19 @@ void Server::serverConnection(int kQueue) {
 		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	fcntl(_socketFD, F_SETFL, O_NONBLOCK);
+	// fcntl(_socketFD, F_SETFL, O_NONBLOCK);
 	_serverAddress.sin_port = htons(_port);
 	if (bind(_socketFD, (struct sockaddr*)&_serverAddress, sizeof(_serverAddress)) < 0) {
 		std::cout << RED << "Error: Fail to bind port " << getPort() << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 	// Mette il server in ascolto su localhost
-	if (listen(_socketFD, 10) < 0) {
+	if (listen(_socketFD, MAXEVENTS) < 0) {
 		std::cout << RED << "Error: Fail to listet on socket" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	// 	struct kevent è un tipo di struttura dati utilizzata in ambienti Unix-like, 
+	// 	struct kevent è un tipo di struttura dati utilizzata in ambienti Unix-like,
 	// in particolare nei sistemi operativi basati su FreeBSD, per gestire eventi di I/O (input/output) asincroni.
 	// È parte di un meccanismo noto come "kqueue" (coda kernel), che offre un'efficiente gestione degli eventi di sistema,
 	// tra cui eventi di socket, file, segnali, e altro.In un contesto di server web, struct kevent e il sistema kqueue
@@ -85,13 +91,14 @@ void Server::serverConnection(int kQueue) {
 	EV_SET(&_kevent, _socketFD, EVFILT_READ, EV_ADD, 0, 0, NULL);
 	kevent(kQueue, &_kevent, 1, NULL, 0, NULL);
 	_setLocationPathMap();
+	_setMap();
 }
 
 void Server::serverDisconnection() {
 	close(_socketFD);
 }
 
-Configuration *Server::getConf() {
+Configuration *Server::getConf2() {
 	return _conf;
 }
 
@@ -112,9 +119,17 @@ void Server::_setHost() {
 }
 
 void Server::_setLocationPathMap() {
-	_locationPathMap = getConf()->getLocationPath();
+	_locationPathMap = getConf().getLocationPath();
+}
+
+void Server::_setMap() {
+	_map = getConf().getMap();
 }
 
 std::map<std::string, LocationPath> Server::getLocationPathMap() {
 	return _locationPathMap;
+}
+
+std::map<std::string, std::string> Server::getMap() {
+	return _map;
 }

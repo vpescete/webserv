@@ -28,6 +28,15 @@ std::string LocationPath::getUploadDir() {
 	return _mapPath["upload_directory"];
 }
 
+std::string LocationPath::getRoot() {
+	return _mapPath["root"];
+}
+
+std::string LocationPath::getLocationPath()
+{
+	return _locationPath;
+}
+
 void LocationPath::_setMapPath(std::string confFile) {
 	std::string::size_type start;
 	std::string::size_type end = 0;

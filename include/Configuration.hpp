@@ -7,7 +7,7 @@ class LocationPath;
 
 class Configuration {
 	private:
-		
+
 		std::map<std::string, std::string> _map;
 		std::map<std::string, LocationPath> _mapLocationPath;
 
@@ -22,6 +22,7 @@ class Configuration {
 		u_int16_t	getPort();
 		std::string	getHostPort();
 		std::map<std::string, LocationPath> getLocationPath();
+		std::map<std::string, std::string> getMap();
 		std::string	getServerName();
 		std::string	getErrorPath(std::string errorCode);
 
