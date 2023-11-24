@@ -11,7 +11,6 @@ int Clients::addNewClient(int fd, int evIdent) {
 		return -1;
 	int	flags = fcntl(fd, F_SETFL, O_NONBLOCK, FD_CLOEXEC); // la flag F_GETFL fa si di ritornare il numero di flags e identifica le flag utilizzate in modo da poterle cambaire successivamente.
 	assert(flags >= 0);
-	// fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 	_clientsVect.push_back(client_info(fd, evIdent));
 	return 0;
 }

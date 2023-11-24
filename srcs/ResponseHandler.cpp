@@ -234,7 +234,8 @@ void ResponseHandler::sendResponse()
 		buffer << file.rdbuf();
 		std::string content = buffer.str();
 		std::string response = makeResponse(statuscode);
-		send(_clientSocket, response.c_str(), response.length(), 0);
+		if (send(_clientSocket, response.c_str(), response.length(), 0) <= 0)
+			return ;
 	}
 	else {
 		std::ifstream file("." + _path);

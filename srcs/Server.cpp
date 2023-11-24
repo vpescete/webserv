@@ -71,7 +71,6 @@ void Server::serverConnection(int kQueue) {
 		std::cout << RED << "Error with setsockopt" << RESET << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	// fcntl(_socketFD, F_SETFL, O_NONBLOCK);
 	_serverAddress.sin_port = htons(_port);
 	if (bind(_socketFD, (struct sockaddr*)&_serverAddress, sizeof(_serverAddress)) < 0) {
 		std::cout << RED << "Error: Fail to bind port " << getPort() << RESET << std::endl;

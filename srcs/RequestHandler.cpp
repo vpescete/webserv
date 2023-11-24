@@ -91,7 +91,7 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 	std::string bodyText;
 	std::string afterBody;
 	std::string lengthContent;
-	std::string::size_type i = 0, j = 0;
+	std::string::size_type i = 0;
 	int contentLength = beforeBody.length() - 2;
 	DIR* dir;
 	struct dirent *entry;
@@ -115,10 +115,11 @@ bool	RequestHandler::autoIndex(int clientSocket) {
 	autoInd = autoInd + lengthContent + beforeBody + bodyText + afterBody;
 	closedir(dir);
 	while(i < autoInd.length()) {
-		i += send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
-		j = i;
-		if (j == i + 1)
-			break;
+		ssize_t check = send(clientSocket, autoInd.c_str(), autoInd.length(), 0);
+		if (check <= 0)
+			break ;
+		i += check;
+
 	}
 	return true;
 }
