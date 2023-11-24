@@ -285,10 +285,13 @@ void ResponseHandler::setContent(std::string pwd)
 
 	if ((long long)_request->getTrueBody().length() > _maxBodySize) {
 		setStatusCode("413");
-		sendResponse();
-		return ;
+		// sendResponse();
+		// return ;
+		file.open("." + getErrorPath());
+		_path = "." + getErrorPath();
+		fullPath = getErrorPath();
 	}
-	if (_path == "/") {
+	else if (_path == "/") {
 		file.open(_server->getIndex());
 		_path = _server->getIndex();
 		fullPath = _path;
@@ -308,8 +311,12 @@ void ResponseHandler::setContent(std::string pwd)
 	struct stat s;
 	if (fullPath != "/" && stat(fullPath.c_str(), &s) == -1) // file doesn't exist
 	{
+		if (getStatusCode() != "413")
+			setStatusCode("404");
 		file.close();
-		setStatusCode("404");
+		file.open("." + getErrorPath());
+		_path = "." + getErrorPath();
+		fullPath = getErrorPath();
 	}
 	if ((file.is_open() || !(s.st_mode & S_IFDIR))) // check if file is open or is a directory
 	{
